@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<ruleset name="WordPress Coding Standards for Choose Your Best Selling Products">
+
+    <!-- WordPress Core Rules -->
+    <rule ref="WordPress-Core">
+        <!-- Short array syntax is widely accepted now -->
+        <exclude name="Generic.Arrays.DisallowShortArraySyntax" />
+		<exclude name="Generic.Commenting.DocComment.MissingShort" />
+		<exclude name="WordPress.PHP.DisallowShortTernary" />
+    </rule>
+
+    <!-- Include WordPress Documentation Rules -->
+    <rule ref="WordPress-Docs">
+        <!-- We will exclude the assets and vendor folders from being checked -->
+        <exclude-pattern>assets/*</exclude-pattern>
+        <exclude-pattern>vendor/*</exclude-pattern>
+    </rule>
+
+    <!-- Include Extra WordPress-Specific Rules -->
+    <rule ref="WordPress-Extra" />
+
+    <!-- Ensure correct use of internationalization functions -->
+    <rule ref="WordPress.WP.I18n">
+        <properties>
+            <property name="text_domain" type="array">
+                <element value="cbsp"/>
+                <element value="default"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- Ensure PascalCase for Class Files -->
+    <rule ref="Squiz.Classes.ClassFileName">
+        <include-pattern>includes/*</include-pattern>
+    </rule>
+
+    <!-- Allow TestCase and DataProvider to not follow lowercase file naming -->
+    <rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+        <exclude-pattern>tests/php/TestCase.php</exclude-pattern>
+        <exclude-pattern>tests/php/DataProvider.php</exclude-pattern>
+    </rule>
+
+    <!-- Limit consecutive blank lines to 1 instead of 2 -->
+    <rule ref="Squiz.WhiteSpace.FunctionSpacing">
+        <properties>
+            <property name="spacing" value="1" />
+            <property name="spacingBeforeFirst" value="1" />
+            <property name="spacingAfterLast" value="0" />
+        </properties>
+    </rule>
+
+    <!-- Set up PHP CodeSniffer arguments -->
+    <arg value="s" />
+    <arg name="extensions" value="php" />
+    <file>.</file>
+
+    <!-- Exclude common directories from being scanned -->
+    <exclude-pattern>*/node_modules/*</exclude-pattern>
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern type="relative">assets/build/*</exclude-pattern>
+
+</ruleset>

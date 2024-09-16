@@ -2,7 +2,7 @@
 /**
  * Choose Your Best Selling Products Plugin
  *
- * @package cybsp
+ * @package cbsp
  * @author Veeraj Yadav
  *
  * Plugin Name:       Choose Your Best Selling Products
@@ -15,7 +15,7 @@
  * Author URI:        https://author.example.com/
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       cybsp
+ * Text Domain:       cbsp
  * Domain Path:       /languages
  * Requires Plugins:  woocommerce
  */
@@ -24,4 +24,3 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
