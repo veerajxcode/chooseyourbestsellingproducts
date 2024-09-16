@@ -24,3 +24,19 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// Include Composer's autoloader if available.
+if ( file_exists( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' ) ) {
+	require plugin_dir_path( __FILE__ ) . 'vendor/autoload.php';
+}
+
+use CBSP\CbspPlugin;
+
+// Initialize the plugin.
+if ( class_exists( 'CBSP\CbspPlugin' ) ) {
+	$cbsp_plugin = new CbspPlugin();
+}
+
+// Hook into activation and deactivation.
+register_activation_hook( __FILE__, [ $cbsp_plugin, 'activate' ] );
+register_deactivation_hook( __FILE__, [ $cbsp_plugin, 'deactivate' ] );
