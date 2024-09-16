@@ -1,0 +1,36 @@
+{
+    "name": "veerajyadav/cbsp-plugin",
+    "description": "A WordPress plugin for choosing and displaying WooCommerce best-selling products.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "version": "1.0.0",
+    "require": {
+      "php": ">=7.2"
+    },
+    "homepage": "https://github.com/veerajxcode/chooseyourbestsellingproducts",
+    "authors": [
+        {
+            "name": "veerajxcode",
+            "email": "veeraj11yadav@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "wp-coding-standards/wpcs": "^3.1",
+        "phpcompatibility/phpcompatibility-wp": "^2.1"
+    },
+    "config": {
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+    "scripts": {
+        "phpcs": "vendor/bin/phpcs --standard=WordPress --ignore=vendor/*,node_modules/*,tests/*,*.js,*.css C:/xampp/htdocs/advlearning/wp-content/plugins/choose-your-best-selling-products",
+        "phpcbf": "vendor/bin/phpcbf --standard=WordPress --ignore=vendor/*,node_modules/*,tests/*,*.js,*.css C:/xampp/htdocs/advlearning/wp-content/plugins/choose-your-best-selling-products"
+    },
+    "autoload": {
+      "psr-4": {
+        "CBSP\\Includes\\": "includes/"
+      }
+    }
+  }
+  
