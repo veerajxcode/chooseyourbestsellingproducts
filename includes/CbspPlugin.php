@@ -2,7 +2,7 @@
 /**
  * Handles block registration for Choose Your Best Selling Products.
  *
- * @package CBSP
+ * @package cbsp
  */
 
 namespace CBSP;
@@ -10,7 +10,7 @@ namespace CBSP;
 /**
  * The main class responsible for registering the block and block patterns.
  *
- * @package CBSP
+ * @package cbsp
  */
 class CbspPlugin {
 

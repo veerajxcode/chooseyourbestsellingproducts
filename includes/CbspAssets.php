@@ -2,7 +2,7 @@
 /**
  * CbspAssets Class.
  *
- * @package CBSP
+ * @package cbsp
  */
 
 namespace CBSP;
