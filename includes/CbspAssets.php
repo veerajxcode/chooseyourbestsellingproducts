@@ -55,18 +55,24 @@ class CbspAssets {
 		if ( is_admin() ) {
 			wp_enqueue_script(
 				'cbsp-blocks-js',
-				CBSP_PLUGIN_BUILD_URL . '/js/editor.js',
+				CBSP_PLUGIN_BUILD_URL . '/js/blocks.js',
 				$js_dependencies,
 				$version,
 				true
 			);
 		}
 
+		// Theme Gutenberg blocks CSS.
+		$css_dependencies = array(
+			'wp-block-library-theme',
+			'wp-block-library',
+		);
+
 		wp_enqueue_style(
 			'cbsp-blocks-css',
-			CBSP_PLUGIN_BUILD_URL . '/css/editor.css',
+			CBSP_PLUGIN_BUILD_URL . '/css/blocks.css',
 			$css_dependencies,
-			filemtime( CBSP_PLUGIN_BUILD_PATH . '/css/editor.css' ),
+			filemtime( CBSP_PLUGIN_BUILD_PATH . '/css/blocks.css' ),
 			'all'
 		);
 	}
