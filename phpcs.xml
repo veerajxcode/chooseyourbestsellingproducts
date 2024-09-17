@@ -6,7 +6,7 @@
         <!-- Short array syntax is widely accepted now -->
         <exclude name="Generic.Arrays.DisallowShortArraySyntax" />
 		<exclude name="Generic.Commenting.DocComment.MissingShort" />
-		<exclude name="WordPress.PHP.DisallowShortTernary" />
+		<!--<exclude name="Generic.PHP.DisallowShortTernary" />-->
     </rule>
 
     <!-- Include WordPress Documentation Rules -->

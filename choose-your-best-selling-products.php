@@ -38,5 +38,5 @@ if ( class_exists( 'CBSP\CbspPlugin' ) ) {
 }
 
 // Hook into activation and deactivation.
-register_activation_hook( __FILE__, [ $cbsp_plugin, 'activate' ] );
-register_deactivation_hook( __FILE__, [ $cbsp_plugin, 'deactivate' ] );
+register_activation_hook( __FILE__, array( $cbsp_plugin, 'activate' ) );
+register_deactivation_hook( __FILE__, array( $cbsp_plugin, 'deactivate' ) );
