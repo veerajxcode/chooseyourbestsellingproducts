@@ -43,5 +43,6 @@ class CbspPlugin {
 		define( 'CBSP_PLUGIN_VERSION', '1.0.0' );
 
 		new CbspAssets();
+		new CbspBlocks();
 	}
 }
