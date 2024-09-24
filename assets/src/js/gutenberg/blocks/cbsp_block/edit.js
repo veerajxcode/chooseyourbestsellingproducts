@@ -52,7 +52,7 @@ const Edit = (props) => {
             const xmlData = await response.text();
             const parsedProducts = parseXML(xmlData);
             setProducts(parsedProducts);
-            /*setAttributes({ products: parsedProducts });*/
+            setAttributes({ products: parsedProducts }); // Persist products in attributes
         };
 
         fetchDummyProducts();

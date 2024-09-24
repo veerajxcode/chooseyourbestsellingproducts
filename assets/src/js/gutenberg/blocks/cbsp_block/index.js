@@ -1,6 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { registerBlockType } from '@wordpress/blocks';
 import Edit from './edit';
+import Save from './save';
 
 registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
 	title: __( 'CBSP', 'cbsp' ),
@@ -36,9 +37,11 @@ registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
             type: 'boolean',
             default: true,
         },
+        products: {
+            type: 'array',
+            default: [],
+        },
     },
     edit: Edit,
-    save() {
-        return <div>Hello World, step 1 (from the frontend.)</div>
-    },
+    save: Save,
 } );
