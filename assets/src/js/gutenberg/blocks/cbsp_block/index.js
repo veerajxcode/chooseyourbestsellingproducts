@@ -35,7 +35,7 @@ registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
         showCartButton: {
             type: 'boolean',
             default: true,
-        }
+        },
     },
     edit: Edit,
     save() {

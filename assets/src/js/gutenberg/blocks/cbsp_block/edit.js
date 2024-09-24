@@ -2,14 +2,12 @@ import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, RangeControl, ToggleControl } from '@wordpress/components';
-
+import ProductLayout from './product-layout';
 // Helper function to parse XML
 const parseXML = (xmlData) => {
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlData, 'application/xml');
-    console.log(xmlDoc);
     const itemNodes = xmlDoc.getElementsByTagName('item');
-    //console.log(itemNodes);
     const products = [];
 
     Array.from(itemNodes).forEach(item => {
@@ -31,7 +29,6 @@ const parseXML = (xmlData) => {
             }
         });
 
-        // Assuming you have a method to fetch image URL by ID
         const image = thumbnailId ? `/wp-content/uploads/${thumbnailId}.jpg` : '';
 
         products.push({
@@ -42,7 +39,6 @@ const parseXML = (xmlData) => {
     });
 
     return products;
-
 }
 
 const Edit = (props) => {
@@ -51,23 +47,16 @@ const Edit = (props) => {
     const [products, setProducts] = useState([]);
 
     useEffect(() => {
-        // Fetch the dummy product data (parsed XML logic)
         const fetchDummyProducts = async () => {
-            // Logic to fetch and parse XML data
             const response = await fetch(cbspSampleData.sampleProductsXML);
             const xmlData = await response.text();
             const parsedProducts = parseXML(xmlData);
             setProducts(parsedProducts);
+            /*setAttributes({ products: parsedProducts });*/
         };
 
         fetchDummyProducts();
     }, []);
-
-    // CSS grid structure based on column/row settings
-    const gridStyle = {
-        gridTemplateColumns: `repeat(${columns}, 1fr)`,
-        gridTemplateRows:  `repeat(${rows}, auto)`,
-    }
 
     return (
         <>
@@ -117,21 +106,16 @@ const Edit = (props) => {
                 </PanelBody>
             </InspectorControls>
 
-            <div className="product-grid" style={gridStyle}>
-                {products.length > 0 ? (
-                     products.slice(0, columns * rows).map((product, index) => (
-                        <div key={index} className="product-card">
-                            {showImage && <img src={product.image} alt={product.name} />}
-                            {showTitle && <h3>{product.name}</h3>}
-                            {showPrice && <p>{product.price}</p>}
-                            {showRating && <p>Rating Placeholder</p>}
-                            {showCartButton && <button>{__('Add to Cart', 'cbsp')}</button>}
-                        </div>
-                    ))
-                ) : (
-                    <p>{__('Loading sample products...', 'cbsp')}</p>
-                )}
-            </div>
+           <ProductLayout
+            products={products}
+            columns={columns}
+            rows={rows}
+            showImage={showImage}
+            showTitle={showTitle}
+            showPrice={showPrice}
+            showRating={showRating}
+            showCartButton={showCartButton}
+        />
         </>
     );
 };

@@ -1,8 +1,10 @@
-/*! ../js/gutenberg/blocks/cbsp_block */
-
 /*! ../sass/blocks.scss */
 
 /*! ./edit */
+
+/*! ./gutenberg/blocks/cbsp_block */
+
+/*! ./product-layout */
 
 /*! @wordpress/block-editor */
 
@@ -51,3 +53,7 @@
 /*!************************************************************!*\
   !*** ./assets/src/js/gutenberg/blocks/cbsp_block/index.js ***!
   \************************************************************/
+
+/*!*********************************************************************!*\
+  !*** ./assets/src/js/gutenberg/blocks/cbsp_block/product-layout.js ***!
+  \*********************************************************************/

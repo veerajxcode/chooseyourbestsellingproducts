@@ -1,89 +1,121 @@
-/* Wrapper for the grid layout */
-.product-grid {
-    display: grid;
-    gap: 20px; /* Spacing between the product cards */
-    padding: 20px;
-}
-
-/* Each product card styling */
-.product-card {
-    background-color: #fff; /* White background for the product card */
-    border: 1px solid #ddd; /* Light grey border */
-    border-radius: 5px; /* Rounded corners */
+/* General container styling */
+.cbsp-container {
+    width: 100%;
     padding: 15px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
-    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
 }
 
-.product-card:hover {
-    transform: scale(1.05); /* Slight zoom effect on hover */
+/* Grid row */
+.cbsp-grid-layout-row {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 0 -15px;
+}
+
+/* Grid column */
+.cbsp-product-column {
+    padding: 15px;
+    box-sizing: border-box;
 }
 
 /* Product image */
-.product-card img {
-    max-width: 100%; /* Ensure the image doesn't overflow */
+.cbsp-product-img {
+    width: 100%;
     height: auto;
-    border-radius: 5px; /* Match the card's border-radius */
-    margin-bottom: 15px;
+    object-fit: cover;
 }
 
-/* Product title */
-.product-card h3 {
-    font-size: 1.25rem;
-    margin-bottom: 10px;
-    color: #333;
-    font-weight: 600;
+/* Product body content */
+.cbsp-product-body {
+    padding: 15px;
 }
 
-/* Product price */
-.product-card p {
-    font-size: 1.1rem;
-    margin-bottom: 10px;
-    color: #007cba; /* WooCommerce standard blue for prices */
-    font-weight: bold;
-}
+/* Responsive breakpoints */
 
-/* Rating Placeholder */
-.product-card .rating-placeholder {
-    margin-bottom: 10px;
-    font-size: 1rem;
-    color: #f5a623; /* Yellow color for ratings */
-}
-
-/* Add to Cart Button */
-.product-card button {
-    padding: 10px 20px;
-    background-color: #007cba;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: background-color 0.3s ease;
-}
-
-.product-card button:hover {
-    background-color: #005a8c; /* Darker blue on hover */
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .product-grid {
-        grid-template-columns: repeat(2, 1fr); /* Show 2 columns on smaller screens */
-    }
-
-    .product-card {
-        padding: 10px; /* Less padding for smaller screens */
+/* Small devices (mobile phones, less than 576px) */
+@media (max-width: 575.98px) {
+    .cbsp-grid-layout-row .col-1, 
+    .cbsp-grid-layout-row .col-2, 
+    .cbsp-grid-layout-row .col-3, 
+    .cbsp-grid-layout-row .col-4, 
+    .cbsp-grid-layout-row .col-5, 
+    .cbsp-grid-layout-row .col-6, 
+    .cbsp-grid-layout-row .col-7, 
+    .cbsp-grid-layout-row .col-8, 
+    .cbsp-grid-layout-row .col-9, 
+    .cbsp-grid-layout-row .col-10, 
+    .cbsp-grid-layout-row .col-11, 
+    .cbsp-grid-layout-row .col-12 {
+        width: 100%;
+        flex: 0 0 100%;
+        max-width: 100%;
     }
 }
 
-@media (max-width: 480px) {
-    .product-grid {
-        grid-template-columns: 1fr; /* Show 1 column on very small screens */
+/* Medium devices (tablets, 576px and up) */
+@media (min-width: 576px) and (max-width: 767.98px) {
+    .cbsp-grid-layout-row .col-1 {
+        flex: 0 0 8.33%;
+        max-width: 8.33%;
     }
+    .cbsp-grid-layout-row .col-2 {
+        flex: 0 0 16.66%;
+        max-width: 16.66%;
+    }
+    .cbsp-grid-layout-row .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+    .cbsp-grid-layout-row .col-4 {
+        flex: 0 0 33.33%;
+        max-width: 33.33%;
+    }
+    .cbsp-grid-layout-row .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
 
-    .product-card {
-        padding: 8px; /* Further reduce padding for extra small screens */
+/* Large devices (desktops, 768px and up) */
+@media (min-width: 768px) {
+    .cbsp-grid-layout-row .col-1 {
+        flex: 0 0 8.33%;
+        max-width: 8.33%;
+    }
+    .cbsp-grid-layout-row .col-2 {
+        flex: 0 0 16.66%;
+        max-width: 16.66%;
+    }
+    .cbsp-grid-layout-row .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+    .cbsp-grid-layout-row .col-4 {
+        flex: 0 0 33.33%;
+        max-width: 33.33%;
+    }
+    .cbsp-grid-layout-row .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+    .cbsp-grid-layout-row .col-12 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}
+
+/* Extra large devices (large desktops, 1200px and up) */
+@media (min-width: 1200px) {
+    .cbsp-grid-layout-row .col-3 {
+        flex: 0 0 25%;
+        max-width: 25%;
+    }
+    .cbsp-grid-layout-row .col-4 {
+        flex: 0 0 33.33%;
+        max-width: 33.33%;
+    }
+    .cbsp-grid-layout-row .col-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
     }
 }

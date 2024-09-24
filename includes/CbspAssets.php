@@ -23,6 +23,8 @@ class CbspAssets {
 	 * Initialize.
 	 */
 	private function init() {
+		add_action( 'wp_enqueue_scripts', array( $this, 'cbsp_register_styles' ) );
+        add_action( 'wp_enqueue_scripts', array( $this, 'cbsp_register_scripts' ) );
 		/**
 		 * The 'init' hook includes styles and scripts both in editor and frontend,
 		 * except when is_admin() is used to include them conditionally
@@ -30,8 +32,29 @@ class CbspAssets {
 		add_action( 'init', array( $this, 'enqueue_cbsp_block_editor_assets' ) );
 	}
 
+	/** 
+	 * Register Bootstrap Styles.
+	*/
+	public function cbsp_register_styles() {
+        wp_register_style( 'cbsp-bootstrap-css', CBSP_PLUGIN_URL . '/assets/src/library/css/bootstrap.min.css', [], false, 'all' );
+		wp_register_style( 'cbsp-block-css', CBSP_PLUGIN_URL . '/assets/src/css/blocks.css', [], false, 'all' );
+        
+        wp_enqueue_style( 'cbsp-bootstrap-css' );
+		wp_enqueue_style( 'cbsp-block-css' );
+        
+    }
+
+	/** 
+	 * Register Bootstrap Scripts.
+	*/
+	public function cbsp_register_scripts() {
+
+        wp_register_script( 'cbsp-bootstrap-js', CBSP_PLUGIN_URL . '/assets/src/library/js/bootstrap.min.js', [ 'jquery' ], false, true );
+		wp_enqueue_script( 'cbsp-bootstrap-js' );
+	}
+
 	/**
-	 * Enqueue Admin Scripts
+	 * Enqueue Admin Scripts.
 	 */
 	public function enqueue_cbsp_block_editor_assets() {
 
@@ -70,11 +93,10 @@ class CbspAssets {
 				)
 			);
 		}
-
+		
 		// Theme Gutenberg blocks CSS.
 		$css_dependencies = array(
-			'wp-block-library-theme',
-			'wp-block-library',
+			'wp-edit-blocks',
 		);
 
 		wp_enqueue_style(
@@ -82,6 +104,14 @@ class CbspAssets {
 			CBSP_PLUGIN_BUILD_URL . '/css/blocks.css',
 			$css_dependencies,
 			filemtime( CBSP_PLUGIN_BUILD_PATH . '/css/blocks.css' ),
+			'all'
+		);
+
+		wp_enqueue_style(
+			'cbsp-layout-css',
+			CBSP_PLUGIN_URL . '/assets/src/css/blocks.css',
+			$css_dependencies,
+			filemtime( CBSP_PLUGIN_PATH . '/assets/src/css/blocks.css' ),
 			'all'
 		);
 

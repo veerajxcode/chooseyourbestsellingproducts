@@ -1,3 +1,3 @@
 import '../sass/blocks.scss';
 
-import '../js/gutenberg/blocks/cbsp_block';
+import './gutenberg/blocks/cbsp_block';
