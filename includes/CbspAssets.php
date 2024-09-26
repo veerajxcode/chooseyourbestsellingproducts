@@ -30,6 +30,7 @@ class CbspAssets {
 		 * except when is_admin() is used to include them conditionally
 		 */
 		add_action( 'init', array( $this, 'enqueue_cbsp_block_editor_assets' ) );
+
 	}
 
 	/** 
@@ -84,17 +85,9 @@ class CbspAssets {
 				true
 			);
 
-			// Make sample-products.xml file URL available to JavaScript
-			wp_localize_script(
-				'cbsp-blocks-js',
-				'cbspSampleData',
-				array(
-					'sampleProductsXML' => plugin_dir_url( __DIR__ ) . 'assets/sample-data/sample_products.xml',
-				)
-			);
 		}
 		
-		// Theme Gutenberg blocks CSS.
+		// WP Gutenberg blocks CSS.
 		$css_dependencies = array(
 			'wp-edit-blocks',
 		);
@@ -116,4 +109,5 @@ class CbspAssets {
 		);
 
 	}
+
 }

@@ -44,5 +44,6 @@ class CbspPlugin {
 
 		new CbspAssets();
 		new CbspBlocks();
+		new CbspWCRestApi();
 	}
 }

@@ -3,31 +3,74 @@
     width: 100%;
     padding: 15px;
     box-sizing: border-box;
+    padding: 20px 0;
 }
 
 /* Grid row */
 .cbsp-grid-layout-row {
     display: flex;
     flex-wrap: wrap;
-    margin: 0 -15px;
+    margin-bottom: 30px;
+    
 }
 
-/* Grid column */
+/* Product Column */
 .cbsp-product-column {
-    padding: 15px;
-    box-sizing: border-box;
+    /*background-color: #fff;*/
+    padding: 20px;
+    text-align: center;
+    /*border: 1px solid #ddd;*/
+    border-radius: 8px;
+    /*transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);*/
 }
 
-/* Product image */
+.cbsp-product-column:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    transform: translateY(-5px);
+}
+
+/* Product Image */
 .cbsp-product-img {
-    width: 100%;
+    max-width: 100%;
     height: auto;
-    object-fit: cover;
+    margin-bottom: 15px;
+    border-radius: 8px;
 }
 
-/* Product body content */
-.cbsp-product-body {
-    padding: 15px;
+/* Product Title */
+.cbsp-title {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.cbsp-title:hover {
+    text-decoration: underline;
+}
+
+/* Price Section */
+.cbsp-price, .cbsp-currency-symbol {
+    font-size: 1.1rem;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+/* View Product Button */
+.cbsp-btn {
+    background-color: #000;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    text-transform: unset;
+    transition: background-color 0.3s ease;
+    border: none;
+}
+
+.cbsp-btn:hover {
+    background-color: #444;
 }
 
 /* Responsive breakpoints */

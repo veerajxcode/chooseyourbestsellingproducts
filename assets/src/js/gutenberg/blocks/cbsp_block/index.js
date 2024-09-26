@@ -15,7 +15,7 @@ registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
         },
         rows: {
             type: 'number',
-            default: 3,
+            default: 2,
         },
         showImage: {
             type: 'boolean',
@@ -29,11 +29,7 @@ registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
             type: 'boolean',
             default: true,
         },
-        showRating: {
-            type: 'boolean',
-            default: true,
-        },
-        showCartButton: {
+        showViewButton: {
             type: 'boolean',
             default: true,
         },

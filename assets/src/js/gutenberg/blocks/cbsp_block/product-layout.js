@@ -1,6 +1,6 @@
 import { __ } from '@wordpress/i18n';
 
-const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showRating, showCartButton }) => {
+const ProductLayout = ({currencySymbol, products, columns, rows, showImage, showTitle, showPrice, showViewButton }) => {
     const productsToDisplay = products.slice(0, Math.min(products.length, columns * rows));
 
     return (
@@ -13,15 +13,20 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
                                 {showImage && (
                                     <img
                                         className="cbsp-product-img"
-                                        src={product.image || '/path/to/fallback-image.jpg'}
+                                        src={product.image}
                                         alt={product.name || __('Product Image', 'cbsp')}
                                     />
                                 )}
                                 <div className="cbsp-product-body">
-                                    {showTitle && <h5>{product.name || __('No Title', 'cbsp')}</h5>}
-                                    {showPrice && <p>{product.price || __('Price not available', 'cbsp')}</p>}
-                                    {showRating && <p>{__('Rating Placeholder', 'cbsp')}</p>}
-                                    {showCartButton && <button className="btn btn-primary">{__('Add to Cart', 'cbsp')}</button>}
+                                    {showTitle && <h5 className='cbsp-title'>{product.name || __('No Title', 'cbsp')}</h5>}
+                                    {(currencySymbol || showPrice) && (
+                                        <p className='cbsp-price'>
+                                            {currencySymbol && <span className='cbsp-currency-symbol'>{currencySymbol}</span>}
+                                            {showPrice && <span className='cbsp-price'>{product.price || __('Price not available', 'cbsp')}</span>}
+                                        </p>
+                                    )}
+                                    {/*showPrice && <p className='cbsp-price'>{product.price || __('Price not available', 'cbsp')}</p>*/}
+                                    {showViewButton && <a href="#"><button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button></a>}
                                 </div>
                             </div>
                         </div>
