@@ -4,43 +4,9 @@ import { InspectorControls } from '@wordpress/block-editor';
 import { PanelBody, RangeControl, ToggleControl, CheckboxControl, TextControl } from '@wordpress/components';
 import ProductLayout from './product-layout';
 
-// Helper function to parse XML
-const parseXML = (xmlData) => {
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlData, 'application/xml');
-    const itemNodes = xmlDoc.getElementsByTagName('item');
-    const products = [];
-
-    Array.from(itemNodes).forEach(item => {
-        const name = item.getElementsByTagName('title')[0]?.textContent || '';
-        const priceNodes = item.getElementsByTagName('wp:postmeta');
-        let price = '';  
-
-        Array.from(priceNodes).forEach(meta => {
-            const key = meta.getElementsByTagName('wp:meta_key')[0]?.textContent;
-            const value = meta.getElementsByTagName('wp:meta_value')[0]?.textContent;
-
-            if (key === '_price') {
-                price = value;
-            }
-
-        });
-
-        const image = cbspProductData.defaultImg;
-
-        products.push({
-            name,
-            image,
-            price,
-        });
-    });
-
-    return products;
-};
-
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
-    const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, currencySymbol } = attributes;
+    const { columns, rows, showImage, showTitle, showPrice, showViewButton, products } = attributes;
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,14 +14,19 @@ const Edit = (props) => {
     // Fetch dummy products data initially
     useEffect(() => {
         const fetchDummyProducts = async () => {
-            const response = await fetch(cbspProductData.sampleProductsXML);
-            const xmlData = await response.text();
-            const parsedProducts = parseXML(xmlData);
+            const response = await fetch(cbspProductData.apiUrl + 'products');
+            /*const xmlData = await response.text();
+            const parsedProducts = parseXML(xmlData);*/
+            const productData = await response.json();
+            const parsedProducts = productData.map(product => ({
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                image: product.image,
+                product_url: product.product_url,
+            }));
             setAvailableProducts(parsedProducts);
             setAttributes({ products: parsedProducts }); // Set dummy products in attributes initially
-
-            const wcCurrencySymbol = cbspProductData.currencySymbol;
-            setAttributes({ currencySymbol: wcCurrencySymbol });
 
         };
 
@@ -73,6 +44,7 @@ const Edit = (props) => {
                     name: product.name,
                     price: product.price,
                     image: product.image,
+                    product_url: product.product_url,
                 }));
                 setAvailableProducts(allProducts);
             } catch (error) {
@@ -184,7 +156,6 @@ const Edit = (props) => {
                 rows={rows}
                 showImage={showImage}
                 showTitle={showTitle}
-                currencySymbol={currencySymbol}
                 showPrice={showPrice}
                 showViewButton={showViewButton}
             />

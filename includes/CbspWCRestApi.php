@@ -42,10 +42,8 @@ class CbspWCRestApi {
                 'cbsp-blocks-js',
                 'cbspProductData',
                 array(
-                    'sampleProductsXML' => plugin_dir_url( __DIR__ ) . 'assets/sample-data/sample_products.xml',
+                    'nonce'           => wp_create_nonce( 'wp_rest' ), // ToDo: Implement it in api call
                     'apiUrl' => rest_url( 'cbsp/v1/' ),
-                    'currencySymbol'    => $currency_symbol,
-                    'defaultImg' => plugin_dir_url( __DIR__ ) . 'assets/build/img/cbsp-products.png',
                 )
             );
         }
@@ -125,6 +123,7 @@ class CbspWCRestApi {
                 'name'  => $product->get_name(),
                 'price' => $formatted_price,
                 'image' => wp_get_attachment_image_src( $product->get_image_id(), 'thumbnail' )[0],
+                'product_url' => $product->get_permalink(),
             );
         }
 

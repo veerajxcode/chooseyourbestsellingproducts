@@ -85,6 +85,14 @@ class CbspAssets {
 				true
 			);
 
+			wp_enqueue_style(
+				'cbsp-layout-css',
+				CBSP_PLUGIN_URL . '/assets/src/css/blocks.css',
+				'wp-edit-blocks',
+				filemtime( CBSP_PLUGIN_PATH . '/assets/src/css/blocks.css' ),
+				'all'
+			);
+
 		}
 		
 		// WP Gutenberg blocks CSS.
@@ -97,14 +105,6 @@ class CbspAssets {
 			CBSP_PLUGIN_BUILD_URL . '/css/blocks.css',
 			$css_dependencies,
 			filemtime( CBSP_PLUGIN_BUILD_PATH . '/css/blocks.css' ),
-			'all'
-		);
-
-		wp_enqueue_style(
-			'cbsp-layout-css',
-			CBSP_PLUGIN_URL . '/assets/src/css/blocks.css',
-			$css_dependencies,
-			filemtime( CBSP_PLUGIN_PATH . '/assets/src/css/blocks.css' ),
 			'all'
 		);
 

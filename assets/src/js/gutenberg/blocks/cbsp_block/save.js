@@ -3,7 +3,7 @@ import ProductLayout from './product-layout';
 
 const Save = (props) => {
     const { attributes } = props;
-    const { currencySymbol, products, columns, rows, showImage, showTitle, showPrice, showViewButton } = attributes;
+    const { products, columns, rows, showImage, showTitle, showPrice, showViewButton } = attributes;
 
     return (
         <ProductLayout
@@ -12,7 +12,6 @@ const Save = (props) => {
             rows={rows}
             showImage={showImage}
             showTitle={showTitle}
-            currencySymbol={currencySymbol}
             showPrice={showPrice}
             showViewButton={showViewButton}
         />
