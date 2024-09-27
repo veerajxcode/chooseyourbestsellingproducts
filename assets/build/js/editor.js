@@ -1,3 +1,0 @@
-/*! For license information please see editor.js.LICENSE.txt */
-!function(){"use strict";var e={"./assets/src/sass/editor.scss":function(e,s,r){r.r(s)}},s={};function r(t){var o=s[t];if(void 0!==o)return o.exports;var n=s[t]={exports:{}};return e[t](n,n.exports,r),n.exports}r.r=function(e){"undefined"!=typeof Symbol&&Symbol.toStringTag&&Object.defineProperty(e,Symbol.toStringTag,{value:"Module"}),Object.defineProperty(e,"__esModule",{value:!0})};r.r({});r("./assets/src/sass/editor.scss")}();
-//# sourceMappingURL=editor.js.map

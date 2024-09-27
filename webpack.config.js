@@ -3,10 +3,7 @@
  */
 
 const path = require('path');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const TerserPlugin = require('terser-webpack-plugin'); // Replaced UglifyJsPlugin with TerserPlugin
 const DependencyExtractionWebpackPlugin = require('@wordpress/dependency-extraction-webpack-plugin');
 
 // JS Directory path.
@@ -15,8 +12,6 @@ const IMG_DIR = path.resolve(__dirname, 'assets/src/img');
 const BUILD_DIR = path.resolve(__dirname, 'assets/build');
 
 const entry = {
-    main: JS_DIR + '/main.js',
-    editor: JS_DIR + '/editor.js',
     blocks: JS_DIR + '/blocks.js',
 };
 
@@ -33,10 +28,6 @@ const plugins = (argv) => [
         cleanStaleWebpackAssets: 'production' === argv.mode, // Automatically remove all unused webpack assets on rebuild, in production.
     }),
 
-    new MiniCssExtractPlugin({
-        filename: 'css/[name].css',
-    }),
-
     new DependencyExtractionWebpackPlugin({
         injectPolyfill: true,
         combineAssets: true,
@@ -50,15 +41,7 @@ const rules = [
         exclude: /node_modules/,
         use: 'babel-loader',
     },
-    {
-        test: /\.scss$/,
-        exclude: /node_modules/,
-        use: [
-            MiniCssExtractPlugin.loader,
-            'css-loader',
-            'sass-loader',
-        ],
-    },
+
     {
         test: /\.(png|jpg|svg|jpeg|gif|ico)$/,
         use: {
@@ -97,16 +80,6 @@ module.exports = (env, argv) => ({
 
     module: {
         rules: rules,
-    },
-
-    optimization: {
-        minimize: true, // Enables minimization in production mode
-        minimizer: [
-            new TerserPlugin({
-                parallel: true, // Enable multi-process parallel running to improve build speed
-            }),
-            new CssMinimizerPlugin(),
-        ],
     },
 
     plugins: plugins(argv),

@@ -85,28 +85,20 @@ class CbspAssets {
 				true
 			);
 
+			// WP Gutenberg blocks CSS.
+			$css_dependencies = array(
+				'wp-edit-blocks',
+			);
+
 			wp_enqueue_style(
 				'cbsp-layout-css',
 				CBSP_PLUGIN_URL . '/assets/src/css/blocks.css',
-				'wp-edit-blocks',
+				$css_dependencies,
 				filemtime( CBSP_PLUGIN_PATH . '/assets/src/css/blocks.css' ),
 				'all'
 			);
 
 		}
-		
-		// WP Gutenberg blocks CSS.
-		$css_dependencies = array(
-			'wp-edit-blocks',
-		);
-
-		wp_enqueue_style(
-			'cbsp-blocks-css',
-			CBSP_PLUGIN_BUILD_URL . '/css/blocks.css',
-			$css_dependencies,
-			filemtime( CBSP_PLUGIN_BUILD_PATH . '/css/blocks.css' ),
-			'all'
-		);
 
 	}
 
