@@ -1,15 +1,19 @@
 import { __ } from '@wordpress/i18n';
 
-const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showViewButton }) => {
-    // Check if products are being fetched
+const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showViewButton, mode }) => {
+    // Check if products are being fetched or if there are no products
     const isLoading = !products || products.length === 0;
+    const isTSLW = mode === 'tslw'; // Check if the mode is 'tslw' (Top Selling Last Week)
 
+    // Filter products based on the rows and columns to display
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
 
     return (
         <div className="container cbsp-container">
             {isLoading ? (
-                <p>{__('Loading products...', 'cbsp')}</p>
+                <p>{__('No best selling products data available from last week. Would recommend you to include products manually.', 'cbsp')}</p>
+            ) : isTSLW && products.length === 0 ? (
+                <p>{__('No best selling products data available from last week. Would recommend you to include products manually.', 'cbsp')}</p>
             ) : (
                 Array.from({ length: rows }).map((_, rowIndex) => (
                     <div className="row cbsp-grid-layout-row" key={rowIndex}>
@@ -24,9 +28,13 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
                                         />
                                     )}
                                     <div className="cbsp-product-body">
-                                        {showTitle && <h5 className='cbsp-title'>{product.name || __('No Title', 'cbsp')}</h5>}
-                                        {showPrice && <p className='cbsp-price'>{product.price || __('Price not available', 'cbsp')}</p>}
-                                        {showViewButton && <a href={product.product_url} ><button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button></a>}
+                                        {showTitle && <h5 className="cbsp-title">{product.name || __('No Title', 'cbsp')}</h5>}
+                                        {showPrice && <p className="cbsp-price">{product.price || __('Price not available', 'cbsp')}</p>}
+                                        {showViewButton && (
+                                            <a href={product.product_url}>
+                                                <button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button>
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>

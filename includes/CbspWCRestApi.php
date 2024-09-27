@@ -68,12 +68,40 @@ class CbspWCRestApi {
      *
      * @param WP_REST_Request $request
      */
-    public function cbsp_get_products_listing() {
+    public function cbsp_get_products_listing( $request ) {
 
         // Ensure WooCommerce is active.
         if ( ! class_exists( 'WooCommerce' ) ) {
             return new WP_Error( 'woocommerce_not_active', 'WooCommerce is not installed or activated.', array( 'status' => 404 ) );
         }
+
+        // Get the mode from the request parameters (default is 'manual')
+    $mode = $request->get_param('mode') ?: 'manual';
+
+    if ($mode === 'tslw') {
+        // If the mode is 'top_selling_last_week', fetch last week's best selling products
+
+        // Calculate the date for one week ago
+        $one_week_ago = strtotime('-1 week');
+        
+        // Query to fetch products sold in the last week
+        $args = array(
+            'status'    => 'publish',
+            'orderby'   => 'meta_value_num',
+            'order'     => 'DESC',
+            'limit'     => 36,
+            'meta_key'  => 'total_sales',
+            'date_query' => array(
+                array(
+                    'after' => date('Y-m-d', $one_week_ago),
+                    'inclusive' => true,
+                ),
+            ),
+        );
+
+        $query    = new \WC_Product_Query($args);
+    } else {
+        // Otherwise, perform the manual product selection query
 
         $args = array(
             'status'    => 'publish',
@@ -82,51 +110,53 @@ class CbspWCRestApi {
             'limit'     => -1,          // No limit on the number of products
         );
 
-        $query    = new \WC_Product_Query( $args );
-        $products = $query->get_products();
+        $query    = new \WC_Product_Query($args);
+    }
 
-        // Get WooCommerce currency settings
-        $currency_symbol = html_entity_decode( get_woocommerce_currency_symbol() );
-        $currency_position = get_option( 'woocommerce_currency_pos' );
-        $decimal_separator = get_option( 'woocommerce_price_decimal_sep' );
-        $thousand_separator = get_option( 'woocommerce_price_thousand_sep' );
-        $decimals = get_option( 'woocommerce_price_num_decimals' );
+    // Fetch products based on the selected query
+    $products = $query->get_products();
 
-        // Format the product data.
-        $formatted_products = array();
-        foreach ( $products as $product ) {
+    // Get WooCommerce currency settings
+    $currency_symbol = html_entity_decode(get_woocommerce_currency_symbol());
+    $currency_position = get_option('woocommerce_currency_pos');
+    $decimal_separator = get_option('woocommerce_price_decimal_sep');
+    $thousand_separator = get_option('woocommerce_price_thousand_sep');
+    $decimals = get_option('woocommerce_price_num_decimals');
 
-            // Format the price
-            $price = number_format( $product->get_price(), $decimals, $decimal_separator, $thousand_separator );
+    // Format the product data.
+    $formatted_products = array();
+    foreach ($products as $product) {
+        // Format the price
+        $price = number_format($product->get_price(), $decimals, $decimal_separator, $thousand_separator);
 
-            // Add currency symbol in the correct position
-            switch ( $currency_position ) {
-                    case 'left':
-                        $formatted_price = $currency_symbol . $price;
-                        break;
-                    case 'right':
-                        $formatted_price = $price . $currency_symbol;
-                        break;
-                    case 'left_space':
-                        $formatted_price = $currency_symbol . ' ' . $price;
-                        break;
-                    case 'right_space':
-                        $formatted_price = $price . ' ' . $currency_symbol;
-                        break;
-                    default:
-                        $formatted_price = $price;
-                        break;
-                }
-
-            $formatted_products[] = array(
-                'id'    => $product->get_id(),
-                'name'  => $product->get_name(),
-                'price' => $formatted_price,
-                'image' => wp_get_attachment_image_src( $product->get_image_id(), 'thumbnail' )[0],
-                'product_url' => $product->get_permalink(),
-            );
+        // Add currency symbol in the correct position
+        switch ($currency_position) {
+            case 'left':
+                $formatted_price = $currency_symbol . $price;
+                break;
+            case 'right':
+                $formatted_price = $price . $currency_symbol;
+                break;
+            case 'left_space':
+                $formatted_price = $currency_symbol . ' ' . $price;
+                break;
+            case 'right_space':
+                $formatted_price = $price . ' ' . $currency_symbol;
+                break;
+            default:
+                $formatted_price = $price;
+                break;
         }
 
-        return rest_ensure_response( $formatted_products );
+        $formatted_products[] = array(
+            'id'    => $product->get_id(),
+            'name'  => $product->get_name(),
+            'price' => $formatted_price,
+            'image' => wp_get_attachment_image_src($product->get_image_id(), 'thumbnail')[0],
+            'product_url' => $product->get_permalink(),
+        );
+    }
+
+    return rest_ensure_response($formatted_products);
     }
 }
