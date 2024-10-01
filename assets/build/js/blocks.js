@@ -127,6 +127,9 @@ var Edit = function Edit(props) {
                   id: product.id,
                   name: product.name,
                   price: product.price,
+                  regular_price: product.regular_price,
+                  sale_price: product.sale_price,
+                  product_type: product.product_type,
                   image: product.image,
                   product_url: product.product_url
                 };

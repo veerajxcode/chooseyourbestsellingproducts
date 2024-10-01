@@ -122,7 +122,7 @@ class CbspWCRestApi {
         $formatted_products = array();
         foreach ( $products as $product ) {
 
-            if ($product->is_on_sale() && $product->is_type('simple')) {
+        if ($product->is_on_sale() && $product->is_type('simple')) {
             // Sale Price
             $sale_price = $this->format_price($product->get_sale_price(), $currency_symbol, $currency_position, $decimal_separator, $thousand_separator, $decimals);
             // Regular Price
