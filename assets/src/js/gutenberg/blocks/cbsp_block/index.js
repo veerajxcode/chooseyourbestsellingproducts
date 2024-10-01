@@ -37,6 +37,10 @@ registerBlockType( 'cbsp-blocks/cbsp-grid-layout', {
             type: 'array',
             default: [],
         },
+        isAutomatic: { 
+            type: 'boolean', 
+            default: true 
+        },
     },
     edit: Edit,
     save: Save,

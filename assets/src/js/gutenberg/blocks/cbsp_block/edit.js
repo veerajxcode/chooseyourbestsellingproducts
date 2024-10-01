@@ -6,64 +6,61 @@ import ProductLayout from './product-layout';
 
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
-    const { columns, rows, showImage, showTitle, showPrice, showViewButton, products } = attributes;
-    const [selectedProducts, setSelectedProducts] = useState([]);
-    const [availableProducts, setAvailableProducts] = useState([]);
+    const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, isAutomatic } = attributes;
+    
+    const [availableProducts, setAvailableProducts] = useState([]); // Only available products are kept in local state
     const [searchTerm, setSearchTerm] = useState('');
 
-    // Fetch dummy products data initially
+    // Initialize selected products from block attributes
+    const [selectedProducts, setSelectedProducts] = useState(products || []); // Persist selected products from attributes
+
+    // Sync selected products with attributes
     useEffect(() => {
-        const fetchDummyProducts = async () => {
-            const response = await fetch(cbspProductData.apiUrl + 'products');
-            /*const xmlData = await response.text();
-            const parsedProducts = parseXML(xmlData);*/
+        setAttributes({ products: selectedProducts }); // Update attributes when selectedProducts changes
+    }, [selectedProducts]);
+
+    // Fetch products based on the mode (TSLW or manual)
+    useEffect(() => {
+        const fetchProducts = async () => {
+            let mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode based on isAutomatic
+            const response = await fetch(cbspProductData.apiUrl + `products/?mode=${mode}`, {
+                method: 'GET',
+                headers: { 'X-WP-Nonce': cbspProductData.nonce },
+            });
+
             const productData = await response.json();
             const parsedProducts = productData.map(product => ({
                 id: product.id,
                 name: product.name,
                 price: product.price,
+                regular_price: product.regular_price,
+                sale_price: product.sale_price,
+                product_type: product.product_type,
                 image: product.image,
                 product_url: product.product_url,
             }));
+
             setAvailableProducts(parsedProducts);
-            setAttributes({ products: parsedProducts }); // Set dummy products in attributes initially
 
-        };
-
-        fetchDummyProducts();
-    }, []);
-
-    // Fetch all products from localized script (cbspProductData)
-    useEffect(() => {
-        const fetchAllProducts = async () => {
-            try {
-                const response = await fetch(cbspProductData.apiUrl + 'products'); // Fetch all products
-                const productData = await response.json();
-                const allProducts = productData.map(product => ({
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    image: product.image,
-                    product_url: product.product_url,
-                }));
-                setAvailableProducts(allProducts);
-            } catch (error) {
-                console.error('Error fetching products:', error);
+            // Automatically set products if TSLW mode and setAttributes if products exist
+            if (isAutomatic) {
+                setAttributes({ products: parsedProducts });
             }
         };
 
-        fetchAllProducts();
-    }, []);
+        fetchProducts();
+    }, [isAutomatic]);
 
-    // Handle product selection through checkboxes
+    // Handle product selection only when manual mode is active
     const handleProductSelect = (product) => {
-        const isSelected = selectedProducts.some(selected => selected.id === product.id);
-        const updatedSelection = isSelected
-            ? selectedProducts.filter(selected => selected.id !== product.id)
-            : [...selectedProducts, product];
+        if (!isAutomatic) {
+            const isSelected = selectedProducts.some(selected => selected.id === product.id);
+            const updatedSelection = isSelected
+                ? selectedProducts.filter(selected => selected.id !== product.id) // Deselect product
+                : [...selectedProducts, product]; // Select product
 
-        setSelectedProducts(updatedSelection);
-        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : availableProducts });
+            setSelectedProducts(updatedSelection); // Update local state and attributes
+        }
     };
 
     // Validation based on rows and columns
@@ -121,37 +118,36 @@ const Edit = (props) => {
                     />
                 </PanelBody>
                 <PanelBody title={__('Product Filters', 'cbsp')}>
-                    <p>{__('Select Products', 'cbsp')}</p>
-                    {/* Add a search field */}
-                    <TextControl
-                        label={''}
-                        value={searchTerm}
-                        onChange={(value) => setSearchTerm(value)}
-                        placeholder={__('Search by product name...', 'cbsp')}
+                    <ToggleControl
+                        label={__('Top Selling Products (last week)', 'cbsp')}
+                        checked={isAutomatic}
+                        onChange={(value) => setAttributes({ isAutomatic: value })}
                     />
-                    <div
-                        style={{
-                            maxHeight: '200px', // Fixed height for scrolling
-                            minWidth: '230px', // Minimum width for product listing
-                            overflowY: 'scroll', // Enable vertical scrolling
-                            border: '1px solid #ccc',
-                            padding: '10px',
-                        }}
-                    >
-                        {filteredProducts.map((product) => (
-                            <CheckboxControl
-                                key={product.id}
-                                label={product.name}
-                                checked={selectedProducts.some(selected => selected.id === product.id)}
-                                onChange={() => handleProductSelect(product)}
+                    {!isAutomatic && (
+                        <>
+                            <TextControl
+                                value={searchTerm}
+                                onChange={(value) => setSearchTerm(value)}
+                                placeholder={__('Search by product name...', 'cbsp')}
                             />
-                        ))}
-                    </div>
+                            <div style={{ maxHeight: '200px', minWidth: '230px', overflowY: 'scroll', border: '1px solid #ccc', padding: '10px' }}>
+                                {filteredProducts.map((product) => (
+                                    <CheckboxControl
+                                        key={product.id}
+                                        label={product.name}
+                                        checked={selectedProducts.some(selected => selected.id === product.id)}
+                                        onChange={() => handleProductSelect(product)}
+                                    />
+                                ))}
+                            </div>
+                        </>
+                    )}
                 </PanelBody>
             </InspectorControls>
 
+            {/* Pass the products list and other attributes */}
             <ProductLayout
-                products={selectedProducts.length > 0 ? selectedProducts : products} // Use selected products or fallback to default products
+                products={selectedProducts.length > 0 ? selectedProducts : products}
                 columns={columns}
                 rows={rows}
                 showImage={showImage}

@@ -46,120 +46,98 @@ var Edit = function Edit(props) {
     showTitle = attributes.showTitle,
     showPrice = attributes.showPrice,
     showViewButton = attributes.showViewButton,
-    products = attributes.products;
+    products = attributes.products,
+    isAutomatic = attributes.isAutomatic;
   var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
-    selectedProducts = _useState2[0],
-    setSelectedProducts = _useState2[1];
-  var _useState3 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
+    availableProducts = _useState2[0],
+    setAvailableProducts = _useState2[1]; // Only available products are kept in local state
+  var _useState3 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(''),
     _useState4 = _slicedToArray(_useState3, 2),
-    availableProducts = _useState4[0],
-    setAvailableProducts = _useState4[1];
-  var _useState5 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(''),
-    _useState6 = _slicedToArray(_useState5, 2),
-    searchTerm = _useState6[0],
-    setSearchTerm = _useState6[1];
+    searchTerm = _useState4[0],
+    setSearchTerm = _useState4[1];
 
-  // Fetch dummy products data initially
+  // Initialize selected products from block attributes
+  var _useState5 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(products || []),
+    _useState6 = _slicedToArray(_useState5, 2),
+    selectedProducts = _useState6[0],
+    setSelectedProducts = _useState6[1]; // Persist selected products from attributes
+
+  // Sync selected products with attributes
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
-    var fetchDummyProducts = /*#__PURE__*/function () {
+    setAttributes({
+      products: selectedProducts
+    }); // Update attributes when selectedProducts changes
+  }, [selectedProducts]);
+
+  // Fetch products based on the mode (TSLW or manual)
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    var fetchProducts = /*#__PURE__*/function () {
       var _ref = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee() {
-        var response, productData, parsedProducts;
+        var mode, response, productData, parsedProducts;
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              _context.next = 2;
-              return fetch(cbspProductData.apiUrl + 'products');
-            case 2:
+              mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode based on isAutomatic
+              _context.next = 3;
+              return fetch(cbspProductData.apiUrl + "products/?mode=".concat(mode), {
+                method: 'GET',
+                headers: {
+                  'X-WP-Nonce': cbspProductData.nonce
+                }
+              });
+            case 3:
               response = _context.sent;
-              _context.next = 5;
+              _context.next = 6;
               return response.json();
-            case 5:
+            case 6:
               productData = _context.sent;
               parsedProducts = productData.map(function (product) {
                 return {
                   id: product.id,
                   name: product.name,
                   price: product.price,
+                  regular_price: product.regular_price,
+                  sale_price: product.sale_price,
+                  product_type: product.product_type,
                   image: product.image,
                   product_url: product.product_url
                 };
               });
               setAvailableProducts(parsedProducts);
-              setAttributes({
-                products: parsedProducts
-              }); // Set dummy products in attributes initially
-            case 9:
+
+              // Automatically set products if TSLW mode and setAttributes if products exist
+              if (isAutomatic) {
+                setAttributes({
+                  products: parsedProducts
+                });
+              }
+            case 10:
             case "end":
               return _context.stop();
           }
         }, _callee);
       }));
-      return function fetchDummyProducts() {
+      return function fetchProducts() {
         return _ref.apply(this, arguments);
       };
     }();
-    fetchDummyProducts();
-  }, []);
+    fetchProducts();
+  }, [isAutomatic]);
 
-  // Fetch all products from localized script (cbspProductData)
-  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
-    var fetchAllProducts = /*#__PURE__*/function () {
-      var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2() {
-        var response, productData, allProducts;
-        return _regeneratorRuntime().wrap(function _callee2$(_context2) {
-          while (1) switch (_context2.prev = _context2.next) {
-            case 0:
-              _context2.prev = 0;
-              _context2.next = 3;
-              return fetch(cbspProductData.apiUrl + 'products');
-            case 3:
-              response = _context2.sent;
-              _context2.next = 6;
-              return response.json();
-            case 6:
-              productData = _context2.sent;
-              allProducts = productData.map(function (product) {
-                return {
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  image: product.image,
-                  product_url: product.product_url
-                };
-              });
-              setAvailableProducts(allProducts);
-              _context2.next = 14;
-              break;
-            case 11:
-              _context2.prev = 11;
-              _context2.t0 = _context2["catch"](0);
-              console.error('Error fetching products:', _context2.t0);
-            case 14:
-            case "end":
-              return _context2.stop();
-          }
-        }, _callee2, null, [[0, 11]]);
-      }));
-      return function fetchAllProducts() {
-        return _ref2.apply(this, arguments);
-      };
-    }();
-    fetchAllProducts();
-  }, []);
-
-  // Handle product selection through checkboxes
+  // Handle product selection only when manual mode is active
   var handleProductSelect = function handleProductSelect(product) {
-    var isSelected = selectedProducts.some(function (selected) {
-      return selected.id === product.id;
-    });
-    var updatedSelection = isSelected ? selectedProducts.filter(function (selected) {
-      return selected.id !== product.id;
-    }) : [].concat(_toConsumableArray(selectedProducts), [product]);
-    setSelectedProducts(updatedSelection);
-    setAttributes({
-      products: updatedSelection.length > 0 ? updatedSelection : availableProducts
-    });
+    if (!isAutomatic) {
+      var isSelected = selectedProducts.some(function (selected) {
+        return selected.id === product.id;
+      });
+      var updatedSelection = isSelected ? selectedProducts.filter(function (selected) {
+        return selected.id !== product.id;
+      }) // Deselect product
+      : [].concat(_toConsumableArray(selectedProducts), [product]); // Select product
+
+      setSelectedProducts(updatedSelection); // Update local state and attributes
+    }
   };
 
   // Validation based on rows and columns
@@ -232,8 +210,15 @@ var Edit = function Edit(props) {
     }
   })), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Product Filters', 'cbsp')
-  }, /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select Products', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
-    label: '',
+  }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Top Selling Products (last week)', 'cbsp'),
+    checked: isAutomatic,
+    onChange: function onChange(value) {
+      return setAttributes({
+        isAutomatic: value
+      });
+    }
+  }), !isAutomatic && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
     value: searchTerm,
     onChange: function onChange(value) {
       return setSearchTerm(value);
@@ -242,11 +227,8 @@ var Edit = function Edit(props) {
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       maxHeight: '200px',
-      // Fixed height for scrolling
       minWidth: '230px',
-      // Minimum width for product listing
       overflowY: 'scroll',
-      // Enable vertical scrolling
       border: '1px solid #ccc',
       padding: '10px'
     }
@@ -261,9 +243,8 @@ var Edit = function Edit(props) {
         return handleProductSelect(product);
       }
     });
-  })))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    products: selectedProducts.length > 0 ? selectedProducts : products // Use selected products or fallback to default products
-    ,
+  }))))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
+    products: selectedProducts.length > 0 ? selectedProducts : products,
     columns: columns,
     rows: rows,
     showImage: showImage,
@@ -326,6 +307,10 @@ __webpack_require__.r(__webpack_exports__);
     products: {
       type: 'array',
       default: []
+    },
+    isAutomatic: {
+      type: 'boolean',
+      default: true
     }
   },
   edit: _edit__WEBPACK_IMPORTED_MODULE_2__["default"],
@@ -354,10 +339,18 @@ var ProductLayout = function ProductLayout(_ref) {
     showViewButton = _ref.showViewButton;
   // Check if products are being fetched
   var isLoading = !products || products.length === 0;
+
+  // Message handling for different states
+  var displayMessage = '';
+  if (isLoading) {
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading Products...', 'cbsp');
+  } else if (products.length === 0) {
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('There are no products data available from last week. Would recommend you to include your products manually.', 'cbsp');
+  }
   var productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
   return /*#__PURE__*/React.createElement("div", {
     className: "container cbsp-container"
-  }, isLoading ? /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading products...', 'cbsp')) : Array.from({
+  }, displayMessage ? /*#__PURE__*/React.createElement("p", null, displayMessage) : Array.from({
     length: rows
   }).map(function (_, rowIndex) {
     return /*#__PURE__*/React.createElement("div", {
@@ -379,7 +372,15 @@ var ProductLayout = function ProductLayout(_ref) {
         className: "cbsp-title"
       }, product.name || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No Title', 'cbsp')), showPrice && /*#__PURE__*/React.createElement("p", {
         className: "cbsp-price"
-      }, product.price || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Price not available', 'cbsp')), showViewButton && /*#__PURE__*/React.createElement("a", {
+      }, product.product_type === 'on_sale' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+        className: "cbsp-regular-price"
+      }, /*#__PURE__*/React.createElement("del", null, product.regular_price)), ' ', /*#__PURE__*/React.createElement("span", {
+        className: "cbsp-sale-price"
+      }, /*#__PURE__*/React.createElement("ins", null, product.sale_price))) : product.product_type === 'variable' ? /*#__PURE__*/React.createElement("span", {
+        className: "cbsp-variable-price"
+      }, product.price) : /*#__PURE__*/React.createElement("span", {
+        className: "cbsp-simple-price"
+      }, product.price)), showViewButton && /*#__PURE__*/React.createElement("a", {
         href: product.product_url
       }, /*#__PURE__*/React.createElement("button", {
         className: "btn btn-primary cbsp-btn"
@@ -411,7 +412,16 @@ var Save = function Save(props) {
     showImage = attributes.showImage,
     showTitle = attributes.showTitle,
     showPrice = attributes.showPrice,
-    showViewButton = attributes.showViewButton;
+    showViewButton = attributes.showViewButton,
+    isAutomatic = attributes.isAutomatic;
+
+  // Determine the message based on the mode and whether there are products
+  var message = '';
+  if (isAutomatic && products.length === 0) {
+    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No weekly products available. Would recommend you to include products manually.', 'cbsp');
+  } else if (!isAutomatic && products.length === 0) {
+    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Please select your products manually.', 'cbsp');
+  }
   return /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_1__["default"], {
     products: products,
     columns: columns,
@@ -419,7 +429,8 @@ var Save = function Save(props) {
     showImage: showImage,
     showTitle: showTitle,
     showPrice: showPrice,
-    showViewButton: showViewButton
+    showViewButton: showViewButton,
+    message: message
   });
 };
 /* harmony default export */ __webpack_exports__["default"] = (Save);
