@@ -173,7 +173,7 @@ class CbspWCRestApi {
         $query    = new \WC_Product_Query($args);
         $products = $query->get_products();
     }
-
+    //print_r($products); wp_die();
     // Get WooCommerce currency settings
     $currency_symbol = html_entity_decode(get_woocommerce_currency_symbol());
     $currency_position = get_option('woocommerce_currency_pos');
@@ -186,7 +186,8 @@ class CbspWCRestApi {
     // Format the product data.
     $formatted_products = array();
     foreach ($products as $product) {
-        if ($product->is_on_sale()) {
+       
+        if ($product->is_on_sale() && $product->is_type('simple')) {
             // Sale Price
             $sale_price = $this->format_price($product->get_sale_price(), $currency_symbol, $currency_position, $decimal_separator, $thousand_separator, $decimals);
             // Regular Price
@@ -202,18 +203,13 @@ class CbspWCRestApi {
             $product_type = 'variable';
             // Display price range
             $formatted_price = $min_price . ' - ' . $max_price;
-        } else {
+        }else {
             // Product price
             $formatted_price = $this->format_price($product->get_price(), $currency_symbol, $currency_position, $decimal_separator, $thousand_separator, $decimals);
              //product type
              $product_type = 'simple';
         }
-        
-        
-        
-
-
-
+    
         $formatted_products[] = array(
             'id'    => $product->get_id(),
             'name'  => $product->get_name(),
