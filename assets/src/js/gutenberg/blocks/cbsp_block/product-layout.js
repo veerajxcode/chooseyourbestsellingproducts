@@ -1,7 +1,7 @@
 import { __ } from '@wordpress/i18n';
 
 const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showViewButton }) => {
-    // Check if products are being fetched
+    // Check if products are being fetched or if there are no products
     const isLoading = !products || products.length === 0;
 
     // Message handling for different states
@@ -10,7 +10,7 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
     if (isLoading) {
         displayMessage = __('Loading Products...', 'cbsp');
     } else if (products.length === 0) {
-        displayMessage = __('There are no products data available from last week. Would recommend you to include your products manually.', 'cbsp');
+        displayMessage = __('There are no products data available from last week. Would recommend you to add your products manually.', 'cbsp');
     }
 
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
@@ -33,7 +33,7 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
                                         />
                                     )}
                                     <div className="cbsp-product-body">
-                                        {showTitle && <h5 className='cbsp-title'>{product.name || __('No Title', 'cbsp')}</h5>}
+                                        {showTitle && <h5 className="cbsp-title">{product.name || __('No Title', 'cbsp')}</h5>}
                                         {showPrice && (
                                             <p className='cbsp-price'>
                                                 {product.product_type === 'on_sale' ? (
@@ -49,7 +49,11 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
                                                 )}
                                             </p>
                                         )}
-                                        {showViewButton && <a href={product.product_url}><button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button></a>}
+                                        {showViewButton && (
+                                            <a href={product.product_url}>
+                                                <button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button>
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>

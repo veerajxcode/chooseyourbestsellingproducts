@@ -7,22 +7,14 @@ import ProductLayout from './product-layout';
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
     const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, isAutomatic } = attributes;
-    
-    const [availableProducts, setAvailableProducts] = useState([]); // Only available products are kept in local state
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
-
-    // Initialize selected products from block attributes
-    const [selectedProducts, setSelectedProducts] = useState(products || []); // Persist selected products from attributes
-
-    // Sync selected products with attributes
-    useEffect(() => {
-        setAttributes({ products: selectedProducts }); // Update attributes when selectedProducts changes
-    }, [selectedProducts]);
 
     // Fetch products based on the mode (TSLW or manual)
     useEffect(() => {
         const fetchProducts = async () => {
-            let mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode based on isAutomatic
+            let mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode
             const response = await fetch(cbspProductData.apiUrl + `products/?mode=${mode}`, {
                 method: 'GET',
                 headers: { 'X-WP-Nonce': cbspProductData.nonce },
@@ -41,26 +33,23 @@ const Edit = (props) => {
             }));
 
             setAvailableProducts(parsedProducts);
-
-            // Automatically set products if TSLW mode and setAttributes if products exist
             if (isAutomatic) {
-                setAttributes({ products: parsedProducts });
+                setAttributes({ products: parsedProducts }); // Automatically set products if TSLW
             }
         };
 
         fetchProducts();
     }, [isAutomatic]);
 
-    // Handle product selection only when manual mode is active
+    // Handle product selection through checkboxes (only when manual mode is active)
     const handleProductSelect = (product) => {
-        if (!isAutomatic) {
-            const isSelected = selectedProducts.some(selected => selected.id === product.id);
-            const updatedSelection = isSelected
-                ? selectedProducts.filter(selected => selected.id !== product.id) // Deselect product
-                : [...selectedProducts, product]; // Select product
+        const isSelected = selectedProducts.some(selected => selected.id === product.id);
+        const updatedSelection = isSelected
+            ? selectedProducts.filter(selected => selected.id !== product.id)
+            : [...selectedProducts, product];
 
-            setSelectedProducts(updatedSelection); // Update local state and attributes
-        }
+        setSelectedProducts(updatedSelection);
+        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : availableProducts });
     };
 
     // Validation based on rows and columns
@@ -119,7 +108,7 @@ const Edit = (props) => {
                 </PanelBody>
                 <PanelBody title={__('Product Filters', 'cbsp')}>
                     <ToggleControl
-                        label={__('Top Selling Products (last week)', 'cbsp')}
+                        label={__('Load Top Selling Products Automatically', 'cbsp')}
                         checked={isAutomatic}
                         onChange={(value) => setAttributes({ isAutomatic: value })}
                     />
@@ -145,9 +134,8 @@ const Edit = (props) => {
                 </PanelBody>
             </InspectorControls>
 
-            {/* Pass the products list and other attributes */}
             <ProductLayout
-                products={selectedProducts.length > 0 ? selectedProducts : products}
+                products={selectedProducts.length > 0 ? selectedProducts : products} // Use selected products or fallback to default products
                 columns={columns}
                 rows={rows}
                 showImage={showImage}

@@ -50,25 +50,16 @@ var Edit = function Edit(props) {
     isAutomatic = attributes.isAutomatic;
   var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
-    availableProducts = _useState2[0],
-    setAvailableProducts = _useState2[1]; // Only available products are kept in local state
-  var _useState3 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(''),
+    selectedProducts = _useState2[0],
+    setSelectedProducts = _useState2[1];
+  var _useState3 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
     _useState4 = _slicedToArray(_useState3, 2),
-    searchTerm = _useState4[0],
-    setSearchTerm = _useState4[1];
-
-  // Initialize selected products from block attributes
-  var _useState5 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(products || []),
+    availableProducts = _useState4[0],
+    setAvailableProducts = _useState4[1];
+  var _useState5 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(''),
     _useState6 = _slicedToArray(_useState5, 2),
-    selectedProducts = _useState6[0],
-    setSelectedProducts = _useState6[1]; // Persist selected products from attributes
-
-  // Sync selected products with attributes
-  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
-    setAttributes({
-      products: selectedProducts
-    }); // Update attributes when selectedProducts changes
-  }, [selectedProducts]);
+    searchTerm = _useState6[0],
+    setSearchTerm = _useState6[1];
 
   // Fetch products based on the mode (TSLW or manual)
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
@@ -78,7 +69,7 @@ var Edit = function Edit(props) {
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
-              mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode based on isAutomatic
+              mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode
               _context.next = 3;
               return fetch(cbspProductData.apiUrl + "products/?mode=".concat(mode), {
                 method: 'GET',
@@ -105,12 +96,10 @@ var Edit = function Edit(props) {
                 };
               });
               setAvailableProducts(parsedProducts);
-
-              // Automatically set products if TSLW mode and setAttributes if products exist
               if (isAutomatic) {
                 setAttributes({
                   products: parsedProducts
-                });
+                }); // Automatically set products if TSLW
               }
             case 10:
             case "end":
@@ -125,19 +114,18 @@ var Edit = function Edit(props) {
     fetchProducts();
   }, [isAutomatic]);
 
-  // Handle product selection only when manual mode is active
+  // Handle product selection through checkboxes (only when manual mode is active)
   var handleProductSelect = function handleProductSelect(product) {
-    if (!isAutomatic) {
-      var isSelected = selectedProducts.some(function (selected) {
-        return selected.id === product.id;
-      });
-      var updatedSelection = isSelected ? selectedProducts.filter(function (selected) {
-        return selected.id !== product.id;
-      }) // Deselect product
-      : [].concat(_toConsumableArray(selectedProducts), [product]); // Select product
-
-      setSelectedProducts(updatedSelection); // Update local state and attributes
-    }
+    var isSelected = selectedProducts.some(function (selected) {
+      return selected.id === product.id;
+    });
+    var updatedSelection = isSelected ? selectedProducts.filter(function (selected) {
+      return selected.id !== product.id;
+    }) : [].concat(_toConsumableArray(selectedProducts), [product]);
+    setSelectedProducts(updatedSelection);
+    setAttributes({
+      products: updatedSelection.length > 0 ? updatedSelection : availableProducts
+    });
   };
 
   // Validation based on rows and columns
@@ -211,7 +199,7 @@ var Edit = function Edit(props) {
   })), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Product Filters', 'cbsp')
   }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {
-    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Top Selling Products (last week)', 'cbsp'),
+    label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Load Top Selling Products Automatically', 'cbsp'),
     checked: isAutomatic,
     onChange: function onChange(value) {
       return setAttributes({
@@ -244,7 +232,8 @@ var Edit = function Edit(props) {
       }
     });
   }))))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    products: selectedProducts.length > 0 ? selectedProducts : products,
+    products: selectedProducts.length > 0 ? selectedProducts : products // Use selected products or fallback to default products
+    ,
     columns: columns,
     rows: rows,
     showImage: showImage,
@@ -337,7 +326,7 @@ var ProductLayout = function ProductLayout(_ref) {
     showTitle = _ref.showTitle,
     showPrice = _ref.showPrice,
     showViewButton = _ref.showViewButton;
-  // Check if products are being fetched
+  // Check if products are being fetched or if there are no products
   var isLoading = !products || products.length === 0;
 
   // Message handling for different states
@@ -345,7 +334,7 @@ var ProductLayout = function ProductLayout(_ref) {
   if (isLoading) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading Products...', 'cbsp');
   } else if (products.length === 0) {
-    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('There are no products data available from last week. Would recommend you to include your products manually.', 'cbsp');
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('There are no products data available from last week. Would recommend you to add your products manually.', 'cbsp');
   }
   var productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
   return /*#__PURE__*/React.createElement("div", {
