@@ -3,15 +3,7 @@ import ProductLayout from './product-layout';
 
 const Save = (props) => {
     const { attributes } = props;
-    const { products, columns, rows, showImage, showTitle, showPrice, showViewButton, isAutomatic } = attributes;
-
-    // Determine the message based on the mode and whether there are products
-    let message = '';
-    if (isAutomatic && products.length === 0) {
-        message = __('No weekly products available. Would recommend you to include products manually.', 'cbsp');
-    } else if (!isAutomatic && products.length === 0) {
-        message = __('Please select your products manually.', 'cbsp');
-    }
+    const { products, columns, rows, showImage, showTitle, showPrice, showViewButton } = attributes;
 
     return (
         <ProductLayout
@@ -22,7 +14,6 @@ const Save = (props) => {
             showTitle={showTitle}
             showPrice={showPrice}
             showViewButton={showViewButton}
-            message={message}
         />
     );
 };

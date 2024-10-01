@@ -4,21 +4,12 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
     // Check if products are being fetched
     const isLoading = !products || products.length === 0;
 
-    // Message handling for different states
-    let displayMessage = '';
-
-    if (isLoading) {
-        displayMessage = __('Loading Products...', 'cbsp');
-    } else if (products.length === 0) {
-        displayMessage = __('There are no products data available from last week. Would recommend you to include your products manually.', 'cbsp');
-    }
-
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
 
     return (
         <div className="container cbsp-container">
-            {displayMessage ? (
-                <p>{displayMessage}</p>
+            {isLoading ? (
+                <p>{__('Loading products...', 'cbsp')}</p>
             ) : (
                 Array.from({ length: rows }).map((_, rowIndex) => (
                     <div className="row cbsp-grid-layout-row" key={rowIndex}>
@@ -49,7 +40,7 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
                                                 )}
                                             </p>
                                         )}
-                                        {showViewButton && <a href={product.product_url}><button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button></a>}
+                                        {showViewButton && <a href={product.product_url} ><button className="btn btn-primary cbsp-btn">{__('View Product', 'cbsp')}</button></a>}
                                     </div>
                                 </div>
                             </div>

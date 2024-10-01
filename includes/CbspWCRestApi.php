@@ -91,77 +91,12 @@ class CbspWCRestApi {
      *
      * @param WP_REST_Request $request
      */
-    public function cbsp_get_products_listing( $request ) {
+    public function cbsp_get_products_listing() {
 
         // Ensure WooCommerce is active.
-    if ( ! class_exists( 'WooCommerce' ) ) {
-        return new WP_Error( 'woocommerce_not_active', 'WooCommerce is not installed or activated.', array( 'status' => 404 ) );
-    }
-
-    // Get the mode from the request parameters (default is 'tslw')
-    $mode = $request->get_param('mode');
-
-    if ($mode === 'tslw') {
-        // If the mode is 'tslw (top_selling_last_week)', fetch last week's best selling products
-
-        // Calculate the date for one week ago
-        $one_week_ago = strtotime('-1 week');
-
-        // Get all completed or processing orders from the last week
-        $order_args = array(
-            'status' => array('wc-completed', 'wc-processing'),
-            'date_query' => array(
-                array(
-                    'after' => date('Y-m-d', $one_week_ago),
-                    'inclusive' => true,
-                ),
-            ),
-            'limit' => -1,  // Get all orders
-        );
-
-        $orders = wc_get_orders($order_args);
-
-        // Initialize an array to store the product sales data
-        $product_sales = array();
-
-        // Loop through each order and sum up the quantities sold for each product
-        foreach ($orders as $order) {
-            foreach ($order->get_items() as $item) {
-                $product_id = $item->get_product_id();
-                $quantity_sold = $item->get_quantity();
-                
-                // Sum the quantities sold for each product, but skip if quantity is 0
-                if ($quantity_sold > 0) {
-                    if (isset($product_sales[$product_id])) {
-                        $product_sales[$product_id] += $quantity_sold;
-                    } else {
-                        $product_sales[$product_id] = $quantity_sold;
-                    }
-                }else {
-                        $product_sales[$product_id] = ($product_sales[$product_id] ?? 0) + $quantity_sold;
-                }
-            }
+        if ( ! class_exists( 'WooCommerce' ) ) {
+            return new WP_Error( 'woocommerce_not_active', 'WooCommerce is not installed or activated.', array( 'status' => 404 ) );
         }
-
-        // Sort the products by quantity sold in descending order
-        arsort($product_sales);
-        
-
-        // Fetch the top 40 products (with quantities sold)
-        $top_products = array_slice($product_sales, 0, 40, true);
-
-        // Initialize an empty array to hold the product objects
-        $products = array();
-        foreach ($top_products as $product_id => $quantity_sold) {
-            $product = wc_get_product($product_id);
-            if ($product) {
-                // Add the product object and quantity_sold to the array
-                $products[] = $product; // WooCommerce product object
-            }
-        }
-        
-    } else {
-        // Otherwise, perform the manual product selection query
 
         $args = array(
             'status'    => 'publish',
@@ -170,24 +105,24 @@ class CbspWCRestApi {
             'limit'     => -1,          // No limit on the number of products
         );
 
-        $query    = new \WC_Product_Query($args);
+        $query    = new \WC_Product_Query( $args );
         $products = $query->get_products();
-    }
-    //print_r($products); wp_die();
-    // Get WooCommerce currency settings
-    $currency_symbol = html_entity_decode(get_woocommerce_currency_symbol());
-    $currency_position = get_option('woocommerce_currency_pos');
-    $decimal_separator = get_option('woocommerce_price_decimal_sep');
-    $thousand_separator = get_option('woocommerce_price_thousand_sep');
-    $decimals = get_option('woocommerce_price_num_decimals');
-    $sale_price = '';
-    $regular_price = '';
-    $product_type = '';
-    // Format the product data.
-    $formatted_products = array();
-    foreach ($products as $product) {
-       
-        if ($product->is_on_sale() && $product->is_type('simple')) {
+
+        // Get WooCommerce currency settings
+        $currency_symbol = html_entity_decode( get_woocommerce_currency_symbol() );
+        $currency_position = get_option( 'woocommerce_currency_pos' );
+        $decimal_separator = get_option( 'woocommerce_price_decimal_sep' );
+        $thousand_separator = get_option( 'woocommerce_price_thousand_sep' );
+        $decimals = get_option( 'woocommerce_price_num_decimals' );
+        $sale_price = '';
+        $regular_price = '';
+        $product_type = '';
+
+        // Format the product data.
+        $formatted_products = array();
+        foreach ( $products as $product ) {
+
+            if ($product->is_on_sale() && $product->is_type('simple')) {
             // Sale Price
             $sale_price = $this->format_price($product->get_sale_price(), $currency_symbol, $currency_position, $decimal_separator, $thousand_separator, $decimals);
             // Regular Price
@@ -222,6 +157,6 @@ class CbspWCRestApi {
         );
     }
 
-    return rest_ensure_response( $formatted_products );
+        return rest_ensure_response( $formatted_products );
     }
 }
