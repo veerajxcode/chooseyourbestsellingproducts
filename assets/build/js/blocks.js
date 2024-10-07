@@ -60,6 +60,10 @@ var Edit = function Edit(props) {
     _useState6 = _slicedToArray(_useState5, 2),
     searchTerm = _useState6[0],
     setSearchTerm = _useState6[1];
+  var _useState7 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState8 = _slicedToArray(_useState7, 2),
+    showConfirmationModal = _useState8[0],
+    setShowConfirmationModal = _useState8[1];
 
   // Fetch products based on the mode (TSLW or manual)
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
@@ -124,8 +128,8 @@ var Edit = function Edit(props) {
     }) : [].concat(_toConsumableArray(selectedProducts), [product]);
     setSelectedProducts(updatedSelection);
     setAttributes({
-      products: updatedSelection.length > 0 ? updatedSelection : availableProducts
-    });
+      products: updatedSelection.length > 0 ? updatedSelection : []
+    }); // Set empty array if no products selected
   };
 
   // Validation based on rows and columns
@@ -140,6 +144,30 @@ var Edit = function Edit(props) {
   var filteredProducts = availableProducts.filter(function (product) {
     return product.name.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Toggle the automatic/manual mode with confirmation dialog (only if manual products are selected)
+  var handleModeSwitch = function handleModeSwitch(value) {
+    if (!isAutomatic && value && selectedProducts.length > 0) {
+      // Show modal only if manual products are selected
+      setShowConfirmationModal(true);
+    } else {
+      // Directly switch to automatic mode without showing the modal
+      setAttributes({
+        isAutomatic: value
+      });
+    }
+  };
+  var handleModalConfirm = function handleModalConfirm() {
+    setAttributes({
+      isAutomatic: true,
+      products: []
+    }); // Switch to automatic and clear selected products
+    setSelectedProducts([]); // Clear selected products
+    setShowConfirmationModal(false); // Close the modal
+  };
+  var handleModalCancel = function handleModalCancel() {
+    setShowConfirmationModal(false); // Simply close the modal
+  };
   return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_2__.InspectorControls, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Layout', 'cbsp')
   }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.RangeControl, {
@@ -201,11 +229,7 @@ var Edit = function Edit(props) {
   }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Load Top Selling Products Automatically', 'cbsp'),
     checked: isAutomatic,
-    onChange: function onChange(value) {
-      return setAttributes({
-        isAutomatic: value
-      });
-    }
+    onChange: handleModeSwitch // Call the mode switch function
   }), !isAutomatic && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.TextControl, {
     value: searchTerm,
     onChange: function onChange(value) {
@@ -232,15 +256,25 @@ var Edit = function Edit(props) {
       }
     });
   }))))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    products: selectedProducts.length > 0 ? selectedProducts : products // Use selected products or fallback to default products
+    products: !isAutomatic && selectedProducts.length === 0 ? null : selectedProducts.length > 0 ? selectedProducts : products // Conditional rendering
     ,
     columns: columns,
     rows: rows,
     showImage: showImage,
     showTitle: showTitle,
     showPrice: showPrice,
-    showViewButton: showViewButton
-  }));
+    showViewButton: showViewButton,
+    isManualMode: !isAutomatic // Pass manual mode flag to layout
+  }), showConfirmationModal && /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Modal, {
+    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirm Mode Switch', 'cbsp'),
+    onRequestClose: handleModalCancel
+  }, /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('If you switch to automatic product fetch, your selected products will be cleared.', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+    isPrimary: true,
+    onClick: handleModalConfirm
+  }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('OK', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+    isSecondary: true,
+    onClick: handleModalCancel
+  }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancel', 'cbsp'))));
 };
 /* harmony default export */ __webpack_exports__["default"] = (Edit);
 
@@ -325,16 +359,17 @@ var ProductLayout = function ProductLayout(_ref) {
     showImage = _ref.showImage,
     showTitle = _ref.showTitle,
     showPrice = _ref.showPrice,
-    showViewButton = _ref.showViewButton;
-  // Check if products are being fetched or if there are no products
-  var isLoading = !products || products.length === 0;
-
-  // Message handling for different states
+    showViewButton = _ref.showViewButton,
+    isManualMode = _ref.isManualMode;
+  var isLoading = !products && !isManualMode; // No products and not manual mode
   var displayMessage = '';
   if (isLoading) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading Products...', 'cbsp');
-  } else if (products.length === 0) {
-    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('There are no products data available from last week. Would recommend you to add your products manually.', 'cbsp');
+  } else if (!products && isManualMode) {
+    // Manual mode and no products selected
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your products.', 'cbsp');
+  } else if (products && products.length === 0 && !isManualMode) {
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('There are no products available from last week. Would recommend you to add your products manually.', 'cbsp');
   }
   var productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
   return /*#__PURE__*/React.createElement("div", {
@@ -355,11 +390,9 @@ var ProductLayout = function ProductLayout(_ref) {
         className: "cbsp-product-img",
         src: product.image,
         alt: product.name || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Product Image', 'cbsp')
-      }), /*#__PURE__*/React.createElement("div", {
-        className: "cbsp-product-body"
-      }, showTitle && /*#__PURE__*/React.createElement("h5", {
-        className: "cbsp-title"
-      }, product.name || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No Title', 'cbsp')), showPrice && /*#__PURE__*/React.createElement("p", {
+      }), showTitle && /*#__PURE__*/React.createElement("p", {
+        className: "cbsp-product-title"
+      }, product.name), showPrice && /*#__PURE__*/React.createElement("p", {
         className: "cbsp-price"
       }, product.product_type === 'on_sale' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
         className: "cbsp-regular-price"
@@ -373,7 +406,7 @@ var ProductLayout = function ProductLayout(_ref) {
         href: product.product_url
       }, /*#__PURE__*/React.createElement("button", {
         className: "btn btn-primary cbsp-btn"
-      }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('View Product', 'cbsp'))))));
+      }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('View Product', 'cbsp')))));
     }));
   }));
 };

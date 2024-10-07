@@ -1,7 +1,7 @@
 import { __ } from '@wordpress/i18n';
 import { useState, useEffect } from '@wordpress/element';
 import { InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, RangeControl, ToggleControl, CheckboxControl, TextControl } from '@wordpress/components';
+import { PanelBody, RangeControl, ToggleControl, CheckboxControl, TextControl, Modal, Button } from '@wordpress/components';
 import ProductLayout from './product-layout';
 
 const Edit = (props) => {
@@ -10,6 +10,7 @@ const Edit = (props) => {
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showConfirmationModal, setShowConfirmationModal] = useState(false);
 
     // Fetch products based on the mode (TSLW or manual)
     useEffect(() => {
@@ -49,7 +50,7 @@ const Edit = (props) => {
             : [...selectedProducts, product];
 
         setSelectedProducts(updatedSelection);
-        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : availableProducts });
+        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : [] }); // Set empty array if no products selected
     };
 
     // Validation based on rows and columns
@@ -64,6 +65,27 @@ const Edit = (props) => {
     const filteredProducts = availableProducts.filter(product =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    // Toggle the automatic/manual mode with confirmation dialog (only if manual products are selected)
+    const handleModeSwitch = (value) => {
+        if (!isAutomatic && value && selectedProducts.length > 0) {
+            // Show modal only if manual products are selected
+            setShowConfirmationModal(true);
+        } else {
+            // Directly switch to automatic mode without showing the modal
+            setAttributes({ isAutomatic: value });
+        }
+    };
+
+    const handleModalConfirm = () => {
+        setAttributes({ isAutomatic: true, products: [] }); // Switch to automatic and clear selected products
+        setSelectedProducts([]); // Clear selected products
+        setShowConfirmationModal(false); // Close the modal
+    };
+
+    const handleModalCancel = () => {
+        setShowConfirmationModal(false); // Simply close the modal
+    };
 
     return (
         <>
@@ -110,7 +132,7 @@ const Edit = (props) => {
                     <ToggleControl
                         label={__('Load Top Selling Products Automatically', 'cbsp')}
                         checked={isAutomatic}
-                        onChange={(value) => setAttributes({ isAutomatic: value })}
+                        onChange={handleModeSwitch} // Call the mode switch function
                     />
                     {!isAutomatic && (
                         <>
@@ -135,14 +157,30 @@ const Edit = (props) => {
             </InspectorControls>
 
             <ProductLayout
-                products={selectedProducts.length > 0 ? selectedProducts : products} // Use selected products or fallback to default products
+                products={(!isAutomatic && selectedProducts.length === 0) ? null : selectedProducts.length > 0 ? selectedProducts : products} // Conditional rendering
                 columns={columns}
                 rows={rows}
                 showImage={showImage}
                 showTitle={showTitle}
                 showPrice={showPrice}
                 showViewButton={showViewButton}
+                isManualMode={!isAutomatic} // Pass manual mode flag to layout
             />
+
+            {showConfirmationModal && (
+                <Modal
+                    title={__('Confirm Mode Switch', 'cbsp')}
+                    onRequestClose={handleModalCancel}
+                >
+                    <p>{__('If you switch to automatic product fetch, your selected products will be cleared.', 'cbsp')}</p>
+                    <Button isPrimary onClick={handleModalConfirm}>
+                        {__('OK', 'cbsp')}
+                    </Button>
+                    <Button isSecondary onClick={handleModalCancel}>
+                        {__('Cancel', 'cbsp')}
+                    </Button>
+                </Modal>
+            )}
         </>
     );
 };
