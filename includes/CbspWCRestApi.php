@@ -108,7 +108,6 @@ class CbspWCRestApi {
                 'status'    => 'publish',
                 'orderby'   => 'title',
                 'order'     => 'ASC',
-                'fields'    => array('id', 'name'), // Only fetching ID and name
                 'limit'     => -1,
             );
         } else {
@@ -118,7 +117,6 @@ class CbspWCRestApi {
                 'orderby'   => 'title',
                 'order'     => 'ASC',
                 'include'   => $selectedIds, // Fetch only selected IDs
-                'fields'    => array('id', 'name', 'price', 'regular_price', 'sale_price', 'image', 'permalink'), // Limited fields
             );
         }
 
