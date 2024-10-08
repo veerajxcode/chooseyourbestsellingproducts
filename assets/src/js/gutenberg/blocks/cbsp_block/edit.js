@@ -130,7 +130,7 @@ const Edit = (props) => {
                 </PanelBody>
                 <PanelBody title={__('Product Filters', 'cbsp')}>
                     <ToggleControl
-                        label={__('Load Top Selling Products Automatically', 'cbsp')}
+                        label={__('Top Products (Last Week)', 'cbsp')}
                         checked={isAutomatic}
                         onChange={handleModeSwitch} // Call the mode switch function
                     />
