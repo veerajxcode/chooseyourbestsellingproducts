@@ -50,7 +50,20 @@ const Edit = (props) => {
             });
 
             const productDetails = await response.json();
-            updatedSelection = [...selectedProducts, productDetails[0]];
+            if (productDetails && productDetails.length > 0) {
+                const selectedProduct = {
+                    id: productDetails[0].id,
+                    name: productDetails[0].name,
+                    price: productDetails[0].price,
+                    regular_price: productDetails[0].regular_price,
+                    sale_price: productDetails[0].sale_price,
+                    product_type: productDetails[0].product_type,
+                    image: productDetails[0].image,
+                    product_url: productDetails[0].product_url
+                };
+    
+                updatedSelection = [...selectedProducts, selectedProduct];
+            }
         }
 
         setSelectedProducts(updatedSelection);

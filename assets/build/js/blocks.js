@@ -115,7 +115,7 @@ var Edit = function Edit(props) {
   // Handle product selection through checkboxes (only when manual mode is active)
   var handleProductSelect = /*#__PURE__*/function () {
     var _ref2 = _asyncToGenerator(/*#__PURE__*/_regeneratorRuntime().mark(function _callee2(product) {
-      var isSelected, updatedSelection, response, productDetails;
+      var isSelected, updatedSelection, response, productDetails, selectedProduct;
       return _regeneratorRuntime().wrap(function _callee2$(_context2) {
         while (1) switch (_context2.prev = _context2.next) {
           case 0:
@@ -145,7 +145,19 @@ var Edit = function Edit(props) {
             return response.json();
           case 10:
             productDetails = _context2.sent;
-            updatedSelection = [].concat(_toConsumableArray(selectedProducts), [productDetails[0]]);
+            if (productDetails && productDetails.length > 0) {
+              selectedProduct = {
+                id: productDetails[0].id,
+                name: productDetails[0].name,
+                price: productDetails[0].price,
+                regular_price: productDetails[0].regular_price,
+                sale_price: productDetails[0].sale_price,
+                product_type: productDetails[0].product_type,
+                image: productDetails[0].image,
+                product_url: productDetails[0].product_url
+              };
+              updatedSelection = [].concat(_toConsumableArray(selectedProducts), [selectedProduct]);
+            }
           case 12:
             setSelectedProducts(updatedSelection);
             setAttributes({
