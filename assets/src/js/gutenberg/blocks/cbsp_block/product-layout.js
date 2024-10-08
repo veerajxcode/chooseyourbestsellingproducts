@@ -8,9 +8,9 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
         displayMessage = __('Loading Products...', 'cbsp');
     } else if (!products && isManualMode) { 
         // Manual mode and no products selected
-        displayMessage = __('Select your products.', 'cbsp');
+        displayMessage = __('Select your top selling products.', 'cbsp');
     } else if (products && products.length === 0 && !isManualMode) {
-        displayMessage = __('There are no products available from last week. Would recommend you to add your products manually.', 'cbsp');
+        displayMessage = __('No top selling products available from last week. Add your products manually.', 'cbsp');
     }
 
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
