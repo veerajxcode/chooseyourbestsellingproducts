@@ -104,15 +104,17 @@ class CbspWCRestApi {
     if ($mode === 'tslw') {
         // If the mode is 'tslw (top_selling_last_week)', fetch last week's best selling products
 
-        // Calculate the date for one week ago
-        $one_week_ago = strtotime('-1 week');
+        // Calculate the start and end dates of the last week
+        $start_of_last_week = new \DateTime('last Monday -1 week');
+        $end_of_last_week = new \DateTime('last Sunday -1 week');
 
         // Get all completed or processing orders from the last week
         $order_args = array(
             'status' => array('wc-completed', 'wc-processing'),
             'date_query' => array(
                 array(
-                    'after' => date('Y-m-d', $one_week_ago),
+                    'after'     => $start_of_last_week->format('Y-m-d'),
+                    'before'    => $end_of_last_week->format('Y-m-d'),
                     'inclusive' => true,
                 ),
             ),
@@ -183,6 +185,7 @@ class CbspWCRestApi {
     $sale_price = '';
     $regular_price = '';
     $product_type = '';
+    $formatted_price = '';
     // Format the product data.
     $formatted_products = array();
     foreach ($products as $product) {
