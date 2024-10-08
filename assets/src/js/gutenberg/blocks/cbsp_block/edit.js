@@ -25,12 +25,6 @@ const Edit = (props) => {
             const parsedProducts = productData.map(product => ({
                 id: product.id,
                 name: product.name,
-                price: product.price,
-                regular_price: product.regular_price,
-                sale_price: product.sale_price,
-                product_type: product.product_type,
-                image: product.image,
-                product_url: product.product_url,
             }));
 
             setAvailableProducts(parsedProducts);
@@ -43,14 +37,24 @@ const Edit = (props) => {
     }, [isAutomatic]);
 
     // Handle product selection through checkboxes (only when manual mode is active)
-    const handleProductSelect = (product) => {
+    const handleProductSelect = async (product) => {
         const isSelected = selectedProducts.some(selected => selected.id === product.id);
-        const updatedSelection = isSelected
-            ? selectedProducts.filter(selected => selected.id !== product.id)
-            : [...selectedProducts, product];
+        let updatedSelection;
+
+        if (isSelected) {
+            updatedSelection = selectedProducts.filter(selected => selected.id !== product.id);
+        } else {
+            const response = await fetch(cbspProductData.apiUrl + `products/?mode=manual&selectedIds[]=${product.id}`, {
+                method: 'GET',
+                headers: { 'X-WP-Nonce': cbspProductData.nonce },
+            });
+
+            const productDetails = await response.json();
+            updatedSelection = [...selectedProducts, productDetails[0]];
+        }
 
         setSelectedProducts(updatedSelection);
-        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : [] }); // Set empty array if no products selected
+        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : [] });
     };
 
     // Validation based on rows and columns
@@ -69,22 +73,20 @@ const Edit = (props) => {
     // Toggle the automatic/manual mode with confirmation dialog (only if manual products are selected)
     const handleModeSwitch = (value) => {
         if (!isAutomatic && value && selectedProducts.length > 0) {
-            // Show modal only if manual products are selected
             setShowConfirmationModal(true);
         } else {
-            // Directly switch to automatic mode without showing the modal
             setAttributes({ isAutomatic: value });
         }
     };
 
     const handleModalConfirm = () => {
-        setAttributes({ isAutomatic: true, products: [] }); // Switch to automatic and clear selected products
-        setSelectedProducts([]); // Clear selected products
-        setShowConfirmationModal(false); // Close the modal
+        setAttributes({ isAutomatic: true, products: [] });
+        setSelectedProducts([]);
+        setShowConfirmationModal(false);
     };
 
     const handleModalCancel = () => {
-        setShowConfirmationModal(false); // Simply close the modal
+        setShowConfirmationModal(false);
     };
 
     return (
@@ -128,11 +130,11 @@ const Edit = (props) => {
                         onChange={(value) => setAttributes({ showViewButton: value })}
                     />
                 </PanelBody>
-                <PanelBody title={__('Product Filters', 'cbsp')}>
+                <PanelBody title={__('Mode', 'cbsp')}>
                     <ToggleControl
                         label={__('Load Top Selling Products Automatically', 'cbsp')}
                         checked={isAutomatic}
-                        onChange={handleModeSwitch} // Call the mode switch function
+                        onChange={handleModeSwitch}
                     />
                     {!isAutomatic && (
                         <>
@@ -157,9 +159,9 @@ const Edit = (props) => {
             </InspectorControls>
 
             <ProductLayout
-                products={(!isAutomatic && selectedProducts.length === 0) ? null : selectedProducts.length > 0 ? selectedProducts : products} // Conditional rendering
                 columns={columns}
                 rows={rows}
+                products={(!isAutomatic && selectedProducts.length === 0) ? null : selectedProducts.length > 0 ? selectedProducts : products} // Conditional rendering
                 showImage={showImage}
                 showTitle={showTitle}
                 showPrice={showPrice}
@@ -169,15 +171,15 @@ const Edit = (props) => {
 
             {showConfirmationModal && (
                 <Modal
-                    title={__('Confirm Mode Switch', 'cbsp')}
+                    title={__('Switching to Automatic Mode', 'cbsp')}
                     onRequestClose={handleModalCancel}
                 >
-                    <p>{__('If you switch to automatic product fetch, your selected products will be cleared.', 'cbsp')}</p>
-                    <Button isPrimary onClick={handleModalConfirm}>
-                        {__('OK', 'cbsp')}
-                    </Button>
+                    <p>{__('Switching modes will remove your manually selected products. Are you sure?', 'cbsp')}</p>
                     <Button isSecondary onClick={handleModalCancel}>
                         {__('Cancel', 'cbsp')}
+                    </Button>
+                    <Button isPrimary onClick={handleModalConfirm}>
+                        {__('OK', 'cbsp')}
                     </Button>
                 </Modal>
             )}
