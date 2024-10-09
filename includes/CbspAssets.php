@@ -24,33 +24,55 @@ class CbspAssets {
 	 */
 	private function init() {
 		add_action( 'wp_enqueue_scripts', array( $this, 'cbsp_register_styles' ) );
-        add_action( 'wp_enqueue_scripts', array( $this, 'cbsp_register_scripts' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'cbsp_register_scripts' ) );
 		/**
 		 * The 'init' hook includes styles and scripts both in editor and frontend,
 		 * except when is_admin() is used to include them conditionally
 		 */
 		add_action( 'init', array( $this, 'enqueue_cbsp_block_editor_assets' ) );
-
 	}
 
-	/** 
+	/**
 	 * Register Bootstrap Styles.
-	*/
+	 */
 	public function cbsp_register_styles() {
-        wp_register_style( 'cbsp-bootstrap-css', CBSP_PLUGIN_URL . '/assets/src/library/css/bootstrap.min.css', [], false, 'all' );
-		wp_register_style( 'cbsp-block-css', CBSP_PLUGIN_URL . '/assets/src/css/blocks.css', [], false, 'all' );
-        
-        wp_enqueue_style( 'cbsp-bootstrap-css' );
-		wp_enqueue_style( 'cbsp-block-css' );
-        
-    }
+		// Dynamically get the file modification time for versioning.
+		$bootstrap_css_version = filemtime( CBSP_PLUGIN_PATH . '/assets/src/library/css/bootstrap.min.css' );
+		$block_css_version     = filemtime( CBSP_PLUGIN_PATH . '/assets/src/css/blocks.css' );
+		wp_register_style(
+			'cbsp-bootstrap-css',
+			CBSP_PLUGIN_URL . '/assets/src/library/css/bootstrap.min.css',
+			array(),
+			$bootstrap_css_version,
+			'all'
+		);
+		wp_register_style(
+			'cbsp-block-css',
+			CBSP_PLUGIN_URL . '/assets/src/css/blocks.css',
+			array(),
+			$block_css_version,
+			'all'
+		);
 
-	/** 
+		wp_enqueue_style( 'cbsp-bootstrap-css' );
+		wp_enqueue_style( 'cbsp-block-css' );
+	}
+
+	/**
 	 * Register Bootstrap Scripts.
-	*/
+	 */
 	public function cbsp_register_scripts() {
 
-        wp_register_script( 'cbsp-bootstrap-js', CBSP_PLUGIN_URL . '/assets/src/library/js/bootstrap.min.js', [ 'jquery' ], false, true );
+		// Dynamically get the file modification time for versioning.
+		$bootstrap_js_version = filemtime( CBSP_PLUGIN_PATH . '/assets/src/library/js/bootstrap.min.js' );
+
+		wp_register_script(
+			'cbsp-bootstrap-js',
+			CBSP_PLUGIN_URL . '/assets/src/library/js/bootstrap.min.js',
+			array( 'jquery' ),
+			$bootstrap_js_version,
+			true
+		);
 		wp_enqueue_script( 'cbsp-bootstrap-js' );
 	}
 
@@ -60,7 +82,7 @@ class CbspAssets {
 	public function enqueue_cbsp_block_editor_assets() {
 
 		$asset_config_file = sprintf( '%s/assets.php', CBSP_PLUGIN_BUILD_PATH );
-		
+
 		if ( ! file_exists( $asset_config_file ) ) {
 			return;
 		}
@@ -99,7 +121,5 @@ class CbspAssets {
 			);
 
 		}
-
 	}
-
 }

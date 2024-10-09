@@ -19,6 +19,11 @@ class CbspBlocks {
 		$this->setup_hooks();
 	}
 
+	/**
+	 * Set up WordPress hooks related to the CBSP block.
+	 *
+	 * Registers the necessary actions or filters for the plugin to function.
+	 */
 	protected function setup_hooks() {
 
 		/**
@@ -27,13 +32,12 @@ class CbspBlocks {
 		add_filter( 'block_categories_all', array( $this, 'add_cbsp_block_categories' ) );
 	}
 
-
 	/**
-	 * Add a block category
+	 * Add a block category for the CBSP plugin blocks.
 	 *
-	 * @param array $categories Block categories.
+	 * @param array $categories Existing block categories.
 	 *
-	 * @return array
+	 * @return array Modified block categories with the CBSP category added.
 	 */
 	public function add_cbsp_block_categories( $categories ) {
 
@@ -46,12 +50,8 @@ class CbspBlocks {
 					'slug'  => 'wc-cbsp',
 					'title' => __( 'Choose Your Best Selling Products', 'cbsp' ),
 					'icon'  => '',
-                ),
-            )
+				),
+			)
 		);
-		
-        //echo "<pre>";
-        //print_r($cbsp_slugs); wp_die();
-
 	}
 }
