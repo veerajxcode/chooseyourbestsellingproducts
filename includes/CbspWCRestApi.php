@@ -119,8 +119,8 @@ class CbspWCRestApi {
 			// If the mode is 'tslw (top_selling_last_week)', fetch last week's best selling products.
 
 			// Calculate the start and end dates of the last week.
-			$start_of_last_week = new \DateTime( 'last Monday -1 week' );
-			$end_of_last_week   = new \DateTime( 'last Sunday -1 week' );
+			$start_of_last_week = new \DateTime( 'last Monday -1 day' );
+			$end_of_last_week   = new \DateTime( 'last Sunday -1 day' );
 
 			// Get all completed or processing orders from the last week.
 			$order_args = array(

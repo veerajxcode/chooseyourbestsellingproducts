@@ -6,8 +6,8 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
 
     if (isLoading) {
         displayMessage = __('Loading Products...', 'cbsp');
-    } else if (!products && isManualMode) { 
-        // Manual mode and no products selected
+    } else if (!products || (products && products.length === 0 && isManualMode)) { 
+        // Show message only when products array is empty in manual mode
         displayMessage = __('Select your top selling products.', 'cbsp');
     } else if (products && products.length === 0 && !isManualMode) {
         displayMessage = __('No top selling products available from last week. Add your products manually.', 'cbsp');

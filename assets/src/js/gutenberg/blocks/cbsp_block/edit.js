@@ -7,14 +7,16 @@ import ProductLayout from './product-layout';
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
     const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, isAutomatic } = attributes;
-    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState(products || []); // Initialize from attributes.products
     const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(true); // Loading state
 
     // Fetch products based on the mode (TSLW or manual)
     useEffect(() => {
         const fetchProducts = async () => {
+            setIsLoading(true); // Start loading
             let mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode
             const response = await fetch(cbspProductData.apiUrl + `products/?mode=${mode}`, {
                 method: 'GET',
@@ -37,6 +39,7 @@ const Edit = (props) => {
             if (isAutomatic) {
                 setAttributes({ products: parsedProducts }); // Automatically set products if TSLW
             }
+            setIsLoading(false); // Stop loading once data is fetched
         };
 
         fetchProducts();
@@ -141,23 +144,28 @@ const Edit = (props) => {
                                 onChange={(value) => setSearchTerm(value)}
                                 placeholder={__('Search by product name...', 'cbsp')}
                             />
-                            <div style={{ maxHeight: '200px', minWidth: '230px', overflowY: 'scroll', border: '1px solid #ccc', padding: '10px' }}>
-                                {filteredProducts.map((product) => (
-                                    <CheckboxControl
-                                        key={product.id}
-                                        label={product.name}
-                                        checked={selectedProducts.some(selected => selected.id === product.id)}
-                                        onChange={() => handleProductSelect(product)}
-                                    />
-                                ))}
-                            </div>
+                            {/* Display loading message while fetching products */}
+                            {isLoading ? (
+                                <p style={{color:'#007CBA'}}>{__('Loading products...', 'cbsp')}</p>
+                            ) : (
+                                <div style={{ maxHeight: '200px', minWidth: '230px', overflowY: 'scroll', border: '1px solid #ccc', padding: '10px' }}>
+                                    {filteredProducts.map((product) => (
+                                        <CheckboxControl
+                                            key={product.id}
+                                            label={product.name}
+                                            checked={selectedProducts.some(selected => selected.id === product.id)}
+                                            onChange={() => handleProductSelect(product)}
+                                        />
+                                    ))}
+                                </div>
+                            )}
                         </>
                     )}
                 </PanelBody>
             </InspectorControls>
 
             <ProductLayout
-                products={(!isAutomatic && selectedProducts.length === 0) ? null : selectedProducts.length > 0 ? selectedProducts : products} // Conditional rendering
+                products={selectedProducts.length > 0 ? selectedProducts : products} // Updated to handle both cases
                 columns={columns}
                 rows={rows}
                 showImage={showImage}
@@ -169,14 +177,14 @@ const Edit = (props) => {
 
             {showConfirmationModal && (
                 <Modal
-                    title={__('Confirm Mode Switch', 'cbsp')}
+                    title={__('Confirm', 'cbsp')}
                     onRequestClose={handleModalCancel}
                 >
-                    <p>{__('If you switch to automatic product fetch, your selected products will be cleared.', 'cbsp')}</p>
-                    <Button isPrimary onClick={handleModalConfirm}>
+                    <p>{__('Switching back to Top Selling Products (last week). Your selected products will be cleared.', 'cbsp')}</p>
+                    <Button variant="primary" onClick={handleModalConfirm} style={{ margin: '0 10px 0 0' }}>
                         {__('OK', 'cbsp')}
                     </Button>
-                    <Button isSecondary onClick={handleModalCancel}>
+                    <Button variant="secondary" onClick={handleModalCancel}>
                         {__('Cancel', 'cbsp')}
                     </Button>
                 </Modal>

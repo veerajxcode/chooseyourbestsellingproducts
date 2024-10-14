@@ -48,10 +48,10 @@ var Edit = function Edit(props) {
     showViewButton = attributes.showViewButton,
     products = attributes.products,
     isAutomatic = attributes.isAutomatic;
-  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
+  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(products || []),
     _useState2 = _slicedToArray(_useState, 2),
     selectedProducts = _useState2[0],
-    setSelectedProducts = _useState2[1];
+    setSelectedProducts = _useState2[1]; // Initialize from attributes.products
   var _useState3 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
     _useState4 = _slicedToArray(_useState3, 2),
     availableProducts = _useState4[0],
@@ -64,6 +64,10 @@ var Edit = function Edit(props) {
     _useState8 = _slicedToArray(_useState7, 2),
     showConfirmationModal = _useState8[0],
     setShowConfirmationModal = _useState8[1];
+  var _useState9 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(true),
+    _useState10 = _slicedToArray(_useState9, 2),
+    isLoading = _useState10[0],
+    setIsLoading = _useState10[1]; // Loading state
 
   // Fetch products based on the mode (TSLW or manual)
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
@@ -73,19 +77,20 @@ var Edit = function Edit(props) {
         return _regeneratorRuntime().wrap(function _callee$(_context) {
           while (1) switch (_context.prev = _context.next) {
             case 0:
+              setIsLoading(true); // Start loading
               mode = isAutomatic ? 'tslw' : 'manual'; // Conditional mode
-              _context.next = 3;
+              _context.next = 4;
               return fetch(cbspProductData.apiUrl + "products/?mode=".concat(mode), {
                 method: 'GET',
                 headers: {
                   'X-WP-Nonce': cbspProductData.nonce
                 }
               });
-            case 3:
+            case 4:
               response = _context.sent;
-              _context.next = 6;
+              _context.next = 7;
               return response.json();
-            case 6:
+            case 7:
               productData = _context.sent;
               parsedProducts = productData.map(function (product) {
                 return {
@@ -105,7 +110,8 @@ var Edit = function Edit(props) {
                   products: parsedProducts
                 }); // Automatically set products if TSLW
               }
-            case 10:
+              setIsLoading(false); // Stop loading once data is fetched
+            case 12:
             case "end":
               return _context.stop();
           }
@@ -236,7 +242,11 @@ var Edit = function Edit(props) {
       return setSearchTerm(value);
     },
     placeholder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Search by product name...', 'cbsp')
-  }), /*#__PURE__*/React.createElement("div", {
+  }), isLoading ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#007CBA'
+    }
+  }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading products...', 'cbsp')) : /*#__PURE__*/React.createElement("div", {
     style: {
       maxHeight: '200px',
       minWidth: '230px',
@@ -256,7 +266,7 @@ var Edit = function Edit(props) {
       }
     });
   }))))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    products: !isAutomatic && selectedProducts.length === 0 ? null : selectedProducts.length > 0 ? selectedProducts : products // Conditional rendering
+    products: selectedProducts.length > 0 ? selectedProducts : products // Updated to handle both cases
     ,
     columns: columns,
     rows: rows,
@@ -266,13 +276,16 @@ var Edit = function Edit(props) {
     showViewButton: showViewButton,
     isManualMode: !isAutomatic // Pass manual mode flag to layout
   }), showConfirmationModal && /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Modal, {
-    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirm Mode Switch', 'cbsp'),
+    title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirm', 'cbsp'),
     onRequestClose: handleModalCancel
-  }, /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('If you switch to automatic product fetch, your selected products will be cleared.', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
-    isPrimary: true,
-    onClick: handleModalConfirm
+  }, /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Switching back to Top Selling Products (last week). Your selected products will be cleared.', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
+    variant: "primary",
+    onClick: handleModalConfirm,
+    style: {
+      margin: '0 10px 0 0'
+    }
   }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('OK', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Button, {
-    isSecondary: true,
+    variant: "secondary",
     onClick: handleModalCancel
   }, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Cancel', 'cbsp'))));
 };
@@ -365,8 +378,8 @@ var ProductLayout = function ProductLayout(_ref) {
   var displayMessage = '';
   if (isLoading) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading Products...', 'cbsp');
-  } else if (!products && isManualMode) {
-    // Manual mode and no products selected
+  } else if (!products || products && products.length === 0 && isManualMode) {
+    // Show message only when products array is empty in manual mode
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products.', 'cbsp');
   } else if (products && products.length === 0 && !isManualMode) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No top selling products available from last week. Add your products manually.', 'cbsp');
