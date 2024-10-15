@@ -119,24 +119,38 @@ class CbspWCRestApi {
 			// If the mode is 'tslw (top_selling_last_week)', fetch last week's best selling products.
 
 			// Calculate the start and end dates of the last week.
-			$start_of_last_week = new \DateTime( 'last Monday -1 day' );
-			$end_of_last_week   = new \DateTime( 'last Sunday -1 day' );
+			$previous_week = strtotime("-1 week +1 day");
+
+			$start_of_last_week = strtotime("last sunday midnight",$previous_week);
+			$end_of_last_week = strtotime("next saturday",$start_of_last_week);
+
+			//$start_of_last_week = strtotime("last week",$previous_week);
+			//$end_of_last_week = strtotime("next week",$start_of_last_week);
+
+			$start_of_last_week = date("Y-m-d",$start_of_last_week);
+			$end_of_last_week = date("Y-m-d",$end_of_last_week);
 
 			// Get all completed or processing orders from the last week.
 			$order_args = array(
 				'status'     => array( 'wc-completed', 'wc-processing' ),
 				'date_query' => array(
 					array(
-						'after'     => $start_of_last_week->format( 'Y-m-d' ),
-						'before'    => $end_of_last_week->format( 'Y-m-d' ),
+						'after'     => $start_of_last_week,
+						'before'    => $end_of_last_week,
 						'inclusive' => true,
 					),
 				),
 				'limit'      => -1,  // Get all orders.
 			);
+			//print_r($order_args); wp_die();
 
 			$orders = wc_get_orders( $order_args );
-
+			if(empty( $orders )){
+				// Create a new WP_REST_Response object with the message and set the status to 204.
+				$response = new \WP_REST_Response( array( 'message' => 'No data found' ) );
+				$response->set_status( 204 ); // Set the status code to 204 No Content.
+				return $response;
+			}
 			// Initialize an array to store the product sales data.
 			$product_sales = array();
 

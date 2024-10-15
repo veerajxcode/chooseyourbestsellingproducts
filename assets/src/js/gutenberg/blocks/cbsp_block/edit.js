@@ -7,11 +7,12 @@ import ProductLayout from './product-layout';
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
     const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, isAutomatic } = attributes;
-    const [selectedProducts, setSelectedProducts] = useState(products || []); // Initialize from attributes.products
+    const [selectedProducts, setSelectedProducts] = useState([]); // Initialize from attributes.products
     const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true); // Loading state
+    const [noDataFound, setNoDataFound] = useState(false); // No data found state
 
     // Fetch products based on the mode (TSLW or manual)
     useEffect(() => {
@@ -23,21 +24,28 @@ const Edit = (props) => {
                 headers: { 'X-WP-Nonce': cbspProductData.nonce },
             });
 
-            const productData = await response.json();
-            const parsedProducts = productData.map(product => ({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                regular_price: product.regular_price,
-                sale_price: product.sale_price,
-                product_type: product.product_type,
-                image: product.image,
-                product_url: product.product_url,
-            }));
+            // Check if the response status is 204 (No Content)
+            if (response.status === 204) {
+                setNoDataFound(true); // Set no data found state
+                setIsLoading(false);
+                return;
+            }else {
+                const productData = await response.json();
+                const parsedProducts = productData.map(product => ({
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    regular_price: product.regular_price,
+                    sale_price: product.sale_price,
+                    product_type: product.product_type,
+                    image: product.image,
+                    product_url: product.product_url,
+                }));
 
-            setAvailableProducts(parsedProducts);
-            if (isAutomatic) {
-                setAttributes({ products: parsedProducts }); // Automatically set products if TSLW
+                setAvailableProducts(parsedProducts);
+                if (isAutomatic) {
+                    setAttributes({ products: parsedProducts }); // Automatically set products if TSLW
+                }
             }
             setIsLoading(false); // Stop loading once data is fetched
         };
@@ -74,6 +82,10 @@ const Edit = (props) => {
         if (!isAutomatic && value && selectedProducts.length > 0) {
             // Show modal only if manual products are selected
             setShowConfirmationModal(true);
+        } else if(!isAutomatic && value && selectedProducts.length === 0 ){
+                setAttributes({ isAutomatic: true }); // Switch to automatic and clear selected products
+                setAvailableProducts([]); // Clear available products
+                setNoDataFound(false); //Set NoDataFound as false
         } else {
             // Directly switch to automatic mode without showing the modal
             setAttributes({ isAutomatic: value });
@@ -83,6 +95,8 @@ const Edit = (props) => {
     const handleModalConfirm = () => {
         setAttributes({ isAutomatic: true, products: [] }); // Switch to automatic and clear selected products
         setSelectedProducts([]); // Clear selected products
+        setAvailableProducts([]); // Clear available products
+        setNoDataFound(false); //Set NoDataFound as false
         setShowConfirmationModal(false); // Close the modal
     };
 
@@ -91,7 +105,8 @@ const Edit = (props) => {
     };
 
     return (
-        <>
+        <>  
+            {isAutomatic && isLoading && <p>{__('Loading top selling products from last week...', 'cbsp')}</p>}
             <InspectorControls>
                 <PanelBody title={__('Layout', 'cbsp')}>
                     <RangeControl
@@ -165,7 +180,7 @@ const Edit = (props) => {
             </InspectorControls>
 
             <ProductLayout
-                products={selectedProducts.length > 0 ? selectedProducts : products} // Updated to handle both cases
+                products={isAutomatic ? availableProducts : selectedProducts} // Updated to handle both cases
                 columns={columns}
                 rows={rows}
                 showImage={showImage}
@@ -173,6 +188,7 @@ const Edit = (props) => {
                 showPrice={showPrice}
                 showViewButton={showViewButton}
                 isManualMode={!isAutomatic} // Pass manual mode flag to layout
+                noDataFound={noDataFound} // Pass no data found flag to layout
             />
 
             {showConfirmationModal && (

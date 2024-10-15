@@ -1,16 +1,12 @@
 import { __ } from '@wordpress/i18n';
 
-const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showViewButton, isManualMode }) => {
-    const isLoading = !products && !isManualMode; // No products and not manual mode
+const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPrice, showViewButton, isManualMode, noDataFound }) => {
     let displayMessage = '';
 
-    if (isLoading) {
-        displayMessage = __('Loading Products...', 'cbsp');
-    } else if (!products || (products && products.length === 0 && isManualMode)) { 
-        // Show message only when products array is empty in manual mode
-        displayMessage = __('Select your top selling products.', 'cbsp');
-    } else if (products && products.length === 0 && !isManualMode) {
+    if (noDataFound && !isManualMode) {
         displayMessage = __('No top selling products available from last week. Add your products manually.', 'cbsp');
+    } else if (!products || (products && products.length === 0 && isManualMode)) { 
+        displayMessage = __('Select your top selling products.', 'cbsp');
     }
 
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];

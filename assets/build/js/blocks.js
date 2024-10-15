@@ -48,7 +48,7 @@ var Edit = function Edit(props) {
     showViewButton = attributes.showViewButton,
     products = attributes.products,
     isAutomatic = attributes.isAutomatic;
-  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(products || []),
+  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
     _useState2 = _slicedToArray(_useState, 2),
     selectedProducts = _useState2[0],
     setSelectedProducts = _useState2[1]; // Initialize from attributes.products
@@ -68,6 +68,10 @@ var Edit = function Edit(props) {
     _useState10 = _slicedToArray(_useState9, 2),
     isLoading = _useState10[0],
     setIsLoading = _useState10[1]; // Loading state
+  var _useState11 = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false),
+    _useState12 = _slicedToArray(_useState11, 2),
+    noDataFound = _useState12[0],
+    setNoDataFound = _useState12[1]; // No data found state
 
   // Fetch products based on the mode (TSLW or manual)
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
@@ -88,9 +92,17 @@ var Edit = function Edit(props) {
               });
             case 4:
               response = _context.sent;
-              _context.next = 7;
+              if (!(response.status === 204)) {
+                _context.next = 11;
+                break;
+              }
+              setNoDataFound(true); // Set no data found state
+              setIsLoading(false);
+              return _context.abrupt("return");
+            case 11:
+              _context.next = 13;
               return response.json();
-            case 7:
+            case 13:
               productData = _context.sent;
               parsedProducts = productData.map(function (product) {
                 return {
@@ -110,8 +122,9 @@ var Edit = function Edit(props) {
                   products: parsedProducts
                 }); // Automatically set products if TSLW
               }
+            case 17:
               setIsLoading(false); // Stop loading once data is fetched
-            case 12:
+            case 18:
             case "end":
               return _context.stop();
           }
@@ -156,6 +169,12 @@ var Edit = function Edit(props) {
     if (!isAutomatic && value && selectedProducts.length > 0) {
       // Show modal only if manual products are selected
       setShowConfirmationModal(true);
+    } else if (!isAutomatic && value && selectedProducts.length === 0) {
+      setAttributes({
+        isAutomatic: true
+      }); // Switch to automatic and clear selected products
+      setAvailableProducts([]); // Clear available products
+      setNoDataFound(false); //Set NoDataFound as false
     } else {
       // Directly switch to automatic mode without showing the modal
       setAttributes({
@@ -169,12 +188,14 @@ var Edit = function Edit(props) {
       products: []
     }); // Switch to automatic and clear selected products
     setSelectedProducts([]); // Clear selected products
+    setAvailableProducts([]); // Clear available products
+    setNoDataFound(false); //Set NoDataFound as false
     setShowConfirmationModal(false); // Close the modal
   };
   var handleModalCancel = function handleModalCancel() {
     setShowConfirmationModal(false); // Simply close the modal
   };
-  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_2__.InspectorControls, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, isAutomatic && isLoading && /*#__PURE__*/React.createElement("p", null, (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading top selling products from last week...', 'cbsp')), /*#__PURE__*/React.createElement(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_2__.InspectorControls, null, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Layout', 'cbsp')
   }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.RangeControl, {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Columns', 'cbsp'),
@@ -266,7 +287,7 @@ var Edit = function Edit(props) {
       }
     });
   }))))), /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_4__["default"], {
-    products: selectedProducts.length > 0 ? selectedProducts : products // Updated to handle both cases
+    products: isAutomatic ? availableProducts : selectedProducts // Updated to handle both cases
     ,
     columns: columns,
     rows: rows,
@@ -275,6 +296,8 @@ var Edit = function Edit(props) {
     showPrice: showPrice,
     showViewButton: showViewButton,
     isManualMode: !isAutomatic // Pass manual mode flag to layout
+    ,
+    noDataFound: noDataFound // Pass no data found flag to layout
   }), showConfirmationModal && /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.Modal, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Confirm', 'cbsp'),
     onRequestClose: handleModalCancel
@@ -373,16 +396,13 @@ var ProductLayout = function ProductLayout(_ref) {
     showTitle = _ref.showTitle,
     showPrice = _ref.showPrice,
     showViewButton = _ref.showViewButton,
-    isManualMode = _ref.isManualMode;
-  var isLoading = !products && !isManualMode; // No products and not manual mode
+    isManualMode = _ref.isManualMode,
+    noDataFound = _ref.noDataFound;
   var displayMessage = '';
-  if (isLoading) {
-    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Loading Products...', 'cbsp');
-  } else if (!products || products && products.length === 0 && isManualMode) {
-    // Show message only when products array is empty in manual mode
-    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products.', 'cbsp');
-  } else if (products && products.length === 0 && !isManualMode) {
+  if (noDataFound && !isManualMode) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No top selling products available from last week. Add your products manually.', 'cbsp');
+  } else if (!products || products && products.length === 0 && isManualMode) {
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products.', 'cbsp');
   }
   var productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
   return /*#__PURE__*/React.createElement("div", {
