@@ -86,6 +86,7 @@ const Edit = (props) => {
                 setAttributes({ isAutomatic: true }); // Switch to automatic and clear selected products
                 setAvailableProducts([]); // Clear available products
                 setNoDataFound(false); //Set NoDataFound as false
+                setSearchTerm(''); //Set Search as empty string
         } else {
             // Directly switch to automatic mode without showing the modal
             setAttributes({ isAutomatic: value });
@@ -98,6 +99,7 @@ const Edit = (props) => {
         setAvailableProducts([]); // Clear available products
         setNoDataFound(false); //Set NoDataFound as false
         setShowConfirmationModal(false); // Close the modal
+        setSearchTerm(''); //Set Search as empty string
     };
 
     const handleModalCancel = () => {

@@ -80,7 +80,7 @@ Thank you for your contribution!
 = 1.0.0 =
 * Initial release of Choose Your Best Selling Products (CBSP).
 * Added automatic product showing feature based on WooCommerce sale data from last week.
-* Added manual product selection feature with pagination and search.
+* Added manual product selection feature with search functionality.
 
 == License ==
 
