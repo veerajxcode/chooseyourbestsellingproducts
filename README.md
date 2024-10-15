@@ -13,11 +13,17 @@ A WordPress plugin to showcase WooCommerce's best-selling products in a customiz
 | [Veeraj Yadav](mailto:veer.sservices@gmail.com)        |  @veerajxcode   |
 
 ## Features
-1.**Customizable Product Grid Layout:** Configure the number of columns and rows, and customize the information displayed (image, title, price, view button).
-2.**Automatic Product Display:** Fetch and display WooCommerce's top-selling products from the past week using WooCommerce's API.
-3.**Manual Product Selection:** Choose specific products manually with a fast-loading product dropdown featuring search large catalogs.
-4.**Real-Time Preview:** Make changes in the Gutenberg editor and see updates in real-time.
-5.**Responsive Design:** Built with Bootstrap, ensuring the grid looks great on all devices.
+
+1. **Customizable Product Grid Layout**: Configure the number of columns and rows, and customize the information displayed (image, title, price, view button).
+
+2. **Automatic Product Display**: Fetch and display WooCommerce's top-selling products from the past week using WooCommerce's API.
+
+3. **Manual Product Selection**: Choose specific products manually with a fast-loading product dropdown featuring search for large catalogs.
+
+4. **Real-Time Preview**: Make changes in the Gutenberg editor and see updates in real-time.
+
+5. **Responsive Design**: Built with Bootstrap, ensuring the grid looks great on all devices.
+
 
 ## Getting Started :clipboard:
 
@@ -57,7 +63,7 @@ You need to have WooCommerce installed and activated on your WordPress site.
 
 ## Author :pencil:
 
-* **[Veeraj Yadav](#)**
+* **[Veeraj Yadav]**
 
 ## License :scroll:
 
