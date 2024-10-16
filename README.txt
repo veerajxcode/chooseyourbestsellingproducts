@@ -69,11 +69,11 @@ Thank you for your contribution!
 
 == Screenshots ==
 
-1. Settings screen in Gutenberg Editor - screenshot-1.png
-2. Example of a product grid layout - screenshot-2.png
-3. Category filter and manual product selection - screenshot-3.png
-4. Example of TSLW (This Week's Last Sales) product grid - screenshot-4.png
-5. Custom product display settings in the editor - screenshot-5.png
+1. Choose Your Best Selling Products (CBSP) Gutenberg block section. - screenshot-1.png
+2. Example of automatically fetched products from last week (Sunday to Saturday). - screenshot-2.png
+3. Example of products added manually from the products listing. - screenshot-3.png
+4. Example showing no products available from last week and suggesting you add your products manually. - screenshot-4.png
+5. When you switch from manually selected products to top selling products (last week). Confirmation dialogue box is shown. - screenshot-5.png
 
 == Changelog ==
 

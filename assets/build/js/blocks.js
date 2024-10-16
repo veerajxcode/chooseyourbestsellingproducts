@@ -494,17 +494,6 @@ var Save = function Save(props) {
 
 /***/ }),
 
-/***/ "./assets/src/img/cbsp-products.png":
-/*!******************************************!*\
-  !*** ./assets/src/img/cbsp-products.png ***!
-  \******************************************/
-/***/ (function(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony default export */ __webpack_exports__["default"] = ("../../img/cbsp-products.png");
-
-/***/ }),
-
 /***/ "@wordpress/block-editor":
 /*!*************************************!*\
   !*** external ["wp","blockEditor"] ***!
@@ -629,10 +618,6 @@ var __webpack_exports__ = {};
   \*********************************/
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _gutenberg_blocks_cbsp_block__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./gutenberg/blocks/cbsp_block */ "./assets/src/js/gutenberg/blocks/cbsp_block/index.js");
-/* harmony import */ var _img_cbsp_products_png__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../img/cbsp-products.png */ "./assets/src/img/cbsp-products.png");
-
-
-//Images.
 
 /******/ })()
 ;
