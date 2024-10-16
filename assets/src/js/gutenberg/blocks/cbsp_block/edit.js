@@ -79,11 +79,14 @@ const Edit = (props) => {
 
     // Toggle the automatic/manual mode with confirmation dialog (only if manual products are selected)
     const handleModeSwitch = (value) => {
-        if (!isAutomatic && value && selectedProducts.length > 0) {
+        if(isAutomatic && !value && availableProducts.length > 0){
+            setAttributes({ isAutomatic: value, products: [] });
+            
+        }else if (!isAutomatic && value && selectedProducts.length > 0) {
             // Show modal only if manual products are selected
             setShowConfirmationModal(true);
         } else if(!isAutomatic && value && selectedProducts.length === 0 ){
-                setAttributes({ isAutomatic: true }); // Switch to automatic and clear selected products
+                setAttributes({ isAutomatic: value }); // Switch to automatic and clear selected products
                 setAvailableProducts([]); // Clear available products
                 setNoDataFound(false); //Set NoDataFound as false
                 setSearchTerm(''); //Set Search as empty string

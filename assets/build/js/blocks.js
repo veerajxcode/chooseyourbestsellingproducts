@@ -166,12 +166,17 @@ var Edit = function Edit(props) {
 
   // Toggle the automatic/manual mode with confirmation dialog (only if manual products are selected)
   var handleModeSwitch = function handleModeSwitch(value) {
-    if (!isAutomatic && value && selectedProducts.length > 0) {
+    if (isAutomatic && !value && availableProducts.length > 0) {
+      setAttributes({
+        isAutomatic: value,
+        products: []
+      });
+    } else if (!isAutomatic && value && selectedProducts.length > 0) {
       // Show modal only if manual products are selected
       setShowConfirmationModal(true);
     } else if (!isAutomatic && value && selectedProducts.length === 0) {
       setAttributes({
-        isAutomatic: true
+        isAutomatic: value
       }); // Switch to automatic and clear selected products
       setAvailableProducts([]); // Clear available products
       setNoDataFound(false); //Set NoDataFound as false
@@ -404,7 +409,7 @@ var ProductLayout = function ProductLayout(_ref) {
   if (noDataFound && !isManualMode) {
     displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No top selling products available from last week. Add your products manually.', 'cbsp');
   } else if (!products || products && products.length === 0 && isManualMode) {
-    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products.', 'cbsp');
+    displayMessage = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products manually.', 'cbsp');
   }
   var productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
   return /*#__PURE__*/React.createElement("div", {
@@ -474,12 +479,15 @@ var Save = function Save(props) {
 
   // Determine the message based on the mode and whether there are products
   var message = '';
+
+  // Display appropriate messages based on the mode and product selection
   if (isAutomatic && products.length === 0) {
-    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No weekly products available. Would recommend you to include products manually.', 'cbsp');
+    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('No top selling products available from last week. Add your products manually.', 'cbsp');
   } else if (!isAutomatic && products.length === 0) {
-    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Please select your products manually.', 'cbsp');
+    message = (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select your top selling products manually.', 'cbsp');
   }
-  return /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_1__["default"], {
+  return /*#__PURE__*/React.createElement("div", null, message ? /*#__PURE__*/React.createElement("p", null, message) // Show message if products are not available
+  : /*#__PURE__*/React.createElement(_product_layout__WEBPACK_IMPORTED_MODULE_1__["default"], {
     products: products,
     columns: columns,
     rows: rows,
@@ -487,8 +495,8 @@ var Save = function Save(props) {
     showTitle: showTitle,
     showPrice: showPrice,
     showViewButton: showViewButton,
-    message: message
-  });
+    isManualMode: !isAutomatic // Pass manual mode flag
+  }));
 };
 /* harmony default export */ __webpack_exports__["default"] = (Save);
 

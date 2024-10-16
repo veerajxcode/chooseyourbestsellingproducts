@@ -6,7 +6,7 @@ const ProductLayout = ({ products, columns, rows, showImage, showTitle, showPric
     if (noDataFound && !isManualMode) {
         displayMessage = __('No top selling products available from last week. Add your products manually.', 'cbsp');
     } else if (!products || (products && products.length === 0 && isManualMode)) { 
-        displayMessage = __('Select your top selling products.', 'cbsp');
+        displayMessage = __('Select your top selling products manually.', 'cbsp');
     }
 
     const productsToDisplay = products ? products.slice(0, Math.min(products.length, columns * rows)) : [];
