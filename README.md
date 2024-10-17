@@ -2,7 +2,7 @@
 
 [![Project Status: Active.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 
-A WordPress plugin to showcase WooCommerce's best-selling products in a customizable grid layout, with flexible options for both automatic and manual product selection.
+A WordPress plugin to showcase top selling products in a customizable grid layout, with flexible options for both automatic and manual product selection.
 
 <!-- Add a relevant banner image here -->
 
