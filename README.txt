@@ -1,8 +1,8 @@
-=== Choose Your Best Selling Products (CBSP) ===
+=== Choose Your Best Selling Products ===
 Contributors: veeraj
 Tags: best-selling-products, WooCommerce, product-grid, Gutenberg-block
 Requires at least: 5.0
-Tested up to: 6.0
+Tested up to: 6.6
 Stable tag: 1.0.0
 Requires PHP: 7.2
 License: GPLv2 or later
