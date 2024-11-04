@@ -29,11 +29,11 @@ A WordPress plugin to showcase top selling products in a customizable grid layou
 Below is a preview of the CBSP plugin in action:
 
 <div style="display: flex; overflow-x: auto;">
-  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-1.png" alt="Screenshot 1" width="300">
-  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-2.png" alt="Screenshot 2" width="300">
-  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-3.png" alt="Screenshot 3" width="300">
-  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-4.png" alt="Screenshot 4" width="300">
-  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-5.png" alt="Screenshot 5" width="300">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-1.png" alt="Screenshot 1" width="300" style="margin-right: 10px; border: 2px solid #ccc; padding: 5px;">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-2.png" alt="Screenshot 2" width="300" style="margin-right: 10px; border: 2px solid #ccc; padding: 5px;">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-3.png" alt="Screenshot 3" width="300" style="margin-right: 10px; border: 2px solid #ccc; padding: 5px;">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-4.png" alt="Screenshot 4" width="300" style="margin-right: 10px; border: 2px solid #ccc; padding: 5px;">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-5.png" alt="Screenshot 5" width="300" style="margin-right: 10px; border: 2px solid #ccc; padding: 5px;">
 </div>
 
 ## Getting Started :clipboard:
