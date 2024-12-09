@@ -10,7 +10,7 @@ A WordPress plugin to showcase top selling products in a customizable grid layou
 
 | Name                                                   | Github Username |
 |--------------------------------------------------------|-----------------|
-| [Veeraj Yadav](mailto:veer.sservices@gmail.com)        |  @veerajxcode   |
+| [Veeraj Yadav](mailto:veeraj11yadav@gmail.com)        |  @veerajxcode   |
 
 ## Features
 
@@ -24,6 +24,17 @@ A WordPress plugin to showcase top selling products in a customizable grid layou
 
 5. **Responsive Design**: Built with Bootstrap, ensuring the grid looks great on all devices.
 
+## Image Gallery
+
+Below is a preview of the CBSP plugin in action:
+
+<div style="display: flex; overflow-x: auto;">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-1.png" alt="Screenshot 1" width="300">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-2.png" alt="Screenshot 2" width="300">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-3.png" alt="Screenshot 3" width="300">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-4.png" alt="Screenshot 4" width="300">
+  <img src="https://github.com/veerajxcode/chooseyourbestsellingproducts/blob/master/assets/src/img/screenshot-5.png" alt="Screenshot 5" width="300">
+</div>
 
 ## Getting Started :clipboard:
 
@@ -60,7 +71,6 @@ You need to have WooCommerce installed and activated on your WordPress site.
 - The plugin optimizes data fetching by loading only essential details in manual mode (product ID, name, price).
 - Includes virtual scrolling and infinite loading for better handling of large product catalogs.
 
-
 ## Author :pencil:
 
 * **[Veeraj Yadav]**
@@ -68,4 +78,3 @@ You need to have WooCommerce installed and activated on your WordPress site.
 ## License :scroll:
 
 This plugin is licensed under GPLv2 or later. See the full license here: [GPLv2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
-
