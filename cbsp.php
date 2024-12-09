@@ -7,7 +7,7 @@
  *
  * Plugin Name:       Choose Your Best Selling Products
  * Description:       A WordPress plugin to display top selling products with flexible settings for manual or automated product selection.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Requires at least: 5.2
  * Requires PHP:      7.2
  * Author:            Veeraj Yadav
