@@ -1,9 +1,9 @@
 === Choose Your Best Selling Products ===
 Contributors: veeraj
-Tags: best-selling-products, WooCommerce, product-grid, Gutenberg-block
-Requires at least: 5.0
-Tested up to: 6.6
-Stable tag: 1.0.0
+Tags: best-selling-products, woocommerce, product-grid, gutenberg, blocks, gutenberg-block
+Requires at least: 5.2
+Tested up to: 6.7.1
+Stable tag: 1.0.1
 Requires PHP: 7.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -76,6 +76,9 @@ Thank you for your contribution!
 5. When you switch from manually selected products to top selling products (last week). Confirmation dialogue box is shown. - screenshot-5.png
 
 == Changelog ==
+
+= 1.0.1 =
+* Bug fix: Fixed manually selected products being unselected after admin page refresh.
 
 = 1.0.0 =
 * Initial release of Choose Your Best Selling Products (CBSP).
