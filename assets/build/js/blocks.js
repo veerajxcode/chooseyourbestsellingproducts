@@ -48,7 +48,7 @@ var Edit = function Edit(props) {
     showViewButton = attributes.showViewButton,
     products = attributes.products,
     isAutomatic = attributes.isAutomatic;
-  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)([]),
+  var _useState = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(attributes.products || []),
     _useState2 = _slicedToArray(_useState, 2),
     selectedProducts = _useState2[0],
     setSelectedProducts = _useState2[1]; // Initialize from attributes.products
@@ -72,6 +72,13 @@ var Edit = function Edit(props) {
     _useState12 = _slicedToArray(_useState11, 2),
     noDataFound = _useState12[0],
     setNoDataFound = _useState12[1]; // No data found state
+
+  // Sync selectedProducts with attributes.products
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
+    if (!isAutomatic && attributes.products) {
+      setSelectedProducts(attributes.products);
+    }
+  }, [attributes.products, isAutomatic]);
 
   // Fetch products based on the mode (TSLW or manual)
   (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useEffect)(function () {
@@ -147,7 +154,7 @@ var Edit = function Edit(props) {
     }) : [].concat(_toConsumableArray(selectedProducts), [product]);
     setSelectedProducts(updatedSelection);
     setAttributes({
-      products: updatedSelection.length > 0 ? updatedSelection : []
+      products: updatedSelection
     }); // Set empty array if no products selected
   };
 
@@ -213,7 +220,8 @@ var Edit = function Edit(props) {
       });
     },
     min: 1,
-    max: 6
+    max: 6,
+    __nextHasNoMarginBottom: true
   }), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.RangeControl, {
     label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Rows', 'cbsp'),
     value: rows,
@@ -223,7 +231,8 @@ var Edit = function Edit(props) {
       });
     },
     min: 1,
-    max: 6
+    max: 6,
+    __nextHasNoMarginBottom: true
   })), /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.PanelBody, {
     title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Content Settings', 'cbsp')
   }, /*#__PURE__*/React.createElement(_wordpress_components__WEBPACK_IMPORTED_MODULE_3__.ToggleControl, {

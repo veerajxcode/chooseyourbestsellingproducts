@@ -7,12 +7,19 @@ import ProductLayout from './product-layout';
 const Edit = (props) => {
     const { attributes, setAttributes } = props;
     const { columns, rows, showImage, showTitle, showPrice, showViewButton, products, isAutomatic } = attributes;
-    const [selectedProducts, setSelectedProducts] = useState([]); // Initialize from attributes.products
+    const [selectedProducts, setSelectedProducts] = useState(attributes.products || []); // Initialize from attributes.products
     const [availableProducts, setAvailableProducts] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [showConfirmationModal, setShowConfirmationModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true); // Loading state
     const [noDataFound, setNoDataFound] = useState(false); // No data found state
+
+    // Sync selectedProducts with attributes.products
+    useEffect(() => {
+        if (!isAutomatic && attributes.products) {
+            setSelectedProducts(attributes.products);
+        }
+    }, [attributes.products, isAutomatic]);
 
     // Fetch products based on the mode (TSLW or manual)
     useEffect(() => {
@@ -61,7 +68,7 @@ const Edit = (props) => {
             : [...selectedProducts, product];
 
         setSelectedProducts(updatedSelection);
-        setAttributes({ products: updatedSelection.length > 0 ? updatedSelection : [] }); // Set empty array if no products selected
+        setAttributes({ products: updatedSelection}); // Set empty array if no products selected
     };
 
     // Validation based on rows and columns
@@ -120,6 +127,7 @@ const Edit = (props) => {
                         onChange={(value) => setAttributes({ columns: value })}
                         min={1}
                         max={6}
+                        __nextHasNoMarginBottom={true}
                     />
                     <RangeControl
                         label={__('Rows', 'cbsp')}
@@ -127,6 +135,7 @@ const Edit = (props) => {
                         onChange={(value) => setAttributes({ rows: value })}
                         min={1}
                         max={6}
+                        __nextHasNoMarginBottom={true}
                     />
                 </PanelBody>
                 <PanelBody title={__('Content Settings', 'cbsp')}>

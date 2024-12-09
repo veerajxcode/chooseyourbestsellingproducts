@@ -13,7 +13,7 @@
  * Author:            Veeraj Yadav
  * License:           GPL v2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain:       choose-your-best-selling-products
+ * Text Domain:       cbsp
  * Requires Plugins:  woocommerce
  */
 

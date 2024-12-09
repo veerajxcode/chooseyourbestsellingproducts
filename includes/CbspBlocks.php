@@ -48,7 +48,7 @@ class CbspBlocks {
 			array(
 				array(
 					'slug'  => 'wc-cbsp',
-					'title' => __( 'Choose Your Best Selling Products', 'choose-your-best-selling-products' ),
+					'title' => __( 'Choose Your Best Selling Products', 'cbsp' ),
 					'icon'  => '',
 				),
 			)
