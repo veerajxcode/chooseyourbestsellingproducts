@@ -59,14 +59,6 @@ Yes, in manual mode, you can manually select products from a list, with search a
 = Does the plugin support all product types? =
 The plugin supports simple and variable products. For other product types, further customization may be required.
 
-== Donate ==
-
-If you find this plugin useful and would like to support its ongoing development, you can make a donation via PayPal. Your support is greatly appreciated!
-
-[![Donate via PayPal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/YOUR_PAYPAL_LINK)
-
-Thank you for your contribution!
-
 == Screenshots ==
 
 1. Choose Your Best Selling Products (CBSP) Gutenberg block section. - screenshot-1.png
