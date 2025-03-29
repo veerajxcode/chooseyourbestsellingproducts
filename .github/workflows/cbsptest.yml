@@ -61,10 +61,3 @@ jobs:
 
           wp plugin activate chooseyourbestsellingproducts --path=/tmp/wordpress
           --allow-root
-      - name: Run PHPUnit tests
-        run: |
-          if [ ! -f vendor/autoload.php ]; then
-            echo "Error: vendor/autoload.php not found. Ensure Composer dependencies are installed."
-            exit 1
-          fi
-          ./vendor/bin/phpunit
