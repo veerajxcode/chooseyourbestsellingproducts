@@ -1,4 +1,4 @@
-name: Plugin Tests
+name: CBSP Plugin Tests
 'on':
   push:
     branches:
@@ -26,12 +26,10 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
-      - name: Install dependencies (Composer & System)
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y unzip
-          composer install --no-interaction --prefer-dist --optimize-autoloader
-          composer require --dev phpunit/phpunit --with-dependencies
       - name: Install WordPress & WooCommerce
         run: >
           curl -O
@@ -62,12 +60,7 @@ jobs:
 
           wp plugin activate chooseyourbestsellingproducts --path=/tmp/wordpress
           --allow-root
-      - name: Verify PHPUnit installation
-        run: |
-          if [ ! -f vendor/bin/phpunit ]; then
-            echo "Error: PHPUnit not found. Ensure it is installed via Composer."
-            exit 1
-          fi
       - name: Run PHPUnit tests
         run: |
+          composer install
           ./vendor/bin/phpunit
