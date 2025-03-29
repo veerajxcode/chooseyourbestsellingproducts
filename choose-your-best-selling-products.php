@@ -29,6 +29,8 @@ if ( file_exists( plugin_dir_path( __FILE__ ) . 'vendor/autoload.php' ) ) {
 
 use CBSP\CbspPlugin;
 
+$cbsp_plugin = null;
+
 // Initialize the plugin.
 if ( class_exists( 'CBSP\CbspPlugin' ) ) {
 	$cbsp_plugin = new CbspPlugin();
