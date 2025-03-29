@@ -31,6 +31,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y unzip
           composer install --no-interaction --prefer-dist --optimize-autoloader
+          composer require --dev phpunit/phpunit --with-dependencies
       - name: Install WordPress & WooCommerce
         run: >
           curl -O
@@ -61,10 +62,12 @@ jobs:
 
           wp plugin activate chooseyourbestsellingproducts --path=/tmp/wordpress
           --allow-root
-      - name: Run PHPUnit tests
+      - name: Verify PHPUnit installation
         run: |
-          if [ ! -f vendor/autoload.php ]; then
-            echo "Error: vendor/autoload.php not found. Ensure Composer dependencies are installed."
+          if [ ! -f vendor/bin/phpunit ]; then
+            echo "Error: PHPUnit not found. Ensure it is installed via Composer."
             exit 1
           fi
+      - name: Run PHPUnit tests
+        run: |
           ./vendor/bin/phpunit
