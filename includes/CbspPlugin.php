@@ -8,7 +8,7 @@
 namespace CBSP;
 
 /**
- * The main class responsible for registering the block.
+ * The main class responsible for registering the block and block pattern.
  *
  * @package cbsp
  */
