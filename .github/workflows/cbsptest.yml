@@ -1,8 +1,9 @@
-name: CBSP Plugin Tests
+name: Plugin Tests
 'on':
   push:
     branches:
-      - bug-fixes
+      - main
+      - develop
   pull_request: null
 jobs:
   test:
@@ -25,10 +26,11 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.0'
-      - name: Install dependencies
+      - name: Install dependencies (Composer & System)
         run: |
           sudo apt-get update
           sudo apt-get install -y unzip
+          composer install --no-interaction --prefer-dist --optimize-autoloader
       - name: Install WordPress & WooCommerce
         run: >
           curl -O
@@ -61,5 +63,8 @@ jobs:
           --allow-root
       - name: Run PHPUnit tests
         run: |
-          composer install
+          if [ ! -f vendor/autoload.php ]; then
+            echo "Error: vendor/autoload.php not found. Ensure Composer dependencies are installed."
+            exit 1
+          fi
           ./vendor/bin/phpunit
