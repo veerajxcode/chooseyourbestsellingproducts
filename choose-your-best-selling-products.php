@@ -34,8 +34,6 @@ $cbsp_plugin = null;
 // Initialize the plugin.
 if ( class_exists( 'CBSP\CbspPlugin' ) ) {
 	$cbsp_plugin = new CbspPlugin();
-}else{
-	$cbsp_plugin = new CbspPlugin();
 }
 
 // Hook into activation and deactivation.
