@@ -133,3 +133,30 @@ jobs:
       - name: Fail job if Error or Warning
         if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
         run: exit 1
+      - name: Send Success Email if All Good
+        if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[✅ SUCCESS] CBSP Plugin Test Passed on WP ${{ env.WP_VERSION }}"
+          to: your@email.com
+          from: CBSP Plugin Bot <your@email.com>
+          body: |
+            Hello 👋
+
+            All plugin checks passed successfully for `choose-your-best-selling-products`.
+
+            ✅ Checklist:
+            - ✔️ WordPress Installed (v${{ env.WP_VERSION }})
+            - ✔️ WooCommerce Installed
+            - ✔️ Plugin Activated
+            - ✔️ No PHPUnit Warnings or Errors (PHPUnit currently skipped)
+
+            ℹ️ Test environment:
+            - PHP: 8.2
+            - MySQL: 5.7
+
+            Have a great day!
