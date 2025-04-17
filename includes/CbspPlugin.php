@@ -40,7 +40,7 @@ class CbspPlugin {
 		define( 'CBSP_PLUGIN_URL', untrailingslashit( plugin_dir_url( __DIR__ ) ) );
 		define( 'CBSP_PLUGIN_BUILD_PATH', CBSP_PLUGIN_PATH . '/assets/build' );
 		define( 'CBSP_PLUGIN_BUILD_URL', CBSP_PLUGIN_URL . '/assets/build' );
-		define( 'CBSP_PLUGIN_VERSION', '1.0.0' );
+		define( 'CBSP_PLUGIN_VERSION', '1.0.1' );
 
 		new CbspAssets();
 		new CbspBlocks();
