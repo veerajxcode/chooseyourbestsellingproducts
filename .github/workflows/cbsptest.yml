@@ -1,63 +1,143 @@
-name: CBSP Plugin Tests
-'on':
-  push:
-    branches:
-      - bug-fixes
-  pull_request: null
+name: CBSP Plugin Test on WP Update
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'  # Every 5 minutes for testing
+
 jobs:
-  test:
+  check-wp-version:
     runs-on: ubuntu-latest
+    outputs:
+      should_run_tests: ${{ steps.check.outputs.should_run }}
+      wp_version: ${{ steps.check.outputs.wp_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get latest WordPress version
+        id: check
+        run: |
+          latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
+          echo "Latest WordPress version: $latest"
+
+          if [ -f .last-wp-version ]; then
+            last=$(cat .last-wp-version)
+          else
+            last=""
+          fi
+
+          if [ "$latest" != "$last" ]; then
+            echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "$latest" > .last-wp-version
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
+
+          echo "wp_version=$latest" >> $GITHUB_OUTPUT
+
+      - name: Commit updated WP version
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add .last-wp-version
+          git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
+          git push
+        continue-on-error: true
+
+  test:
+    needs: check-wp-version
+    if: needs.check-wp-version.outputs.should_run_tests == 'true'
+    runs-on: ubuntu-latest
+    env:
+      WP_VERSION: ${{ needs.check-wp-version.outputs.wp_version }}
+
     services:
       mysql:
-        image: 'mysql:5.7'
+        image: mysql:5.7
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: wordpress_test
         ports:
           - '3306:3306'
         options: >-
-          --health-cmd="mysqladmin ping --silent" --health-interval=10s
-          --health-timeout=5s --health-retries=3
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s --health-timeout=5s --health-retries=3
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-      - name: Install dependencies (Composer & System)
+
+      - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y unzip
           composer install --no-interaction --prefer-dist --optimize-autoloader
           composer dump-autoload
+
       - name: Install WordPress & WooCommerce
-        run: >
-          curl -O
-          https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
-
+        run: |
+          curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
           chmod +x wp-cli.phar
-
           sudo mv wp-cli.phar /usr/local/bin/wp
 
-          wp core download --path=/tmp/wordpress --allow-root
+          wp core download --path=/tmp/wordpress --version=${{ env.WP_VERSION }} --allow-root
+          wp config create --path=/tmp/wordpress --dbname=wordpress_test --dbuser=root --dbpass=root --dbhost=127.0.0.1 --allow-root
+          wp core install --path=/tmp/wordpress --url=http://localhost --title="Test Site" --admin_user=admin --admin_password=password --admin_email=test@example.com --allow-root
 
-          wp config create --path=/tmp/wordpress --dbname=wordpress_test
-          --dbuser=root --dbpass=root --dbhost=127.0.0.1 --allow-root
+          wp plugin install woocommerce --activate --path=/tmp/wordpress --allow-root
 
-          wp core install --path=/tmp/wordpress --url=http://localhost
-          --title="Test Site" --admin_user=admin --admin_password=password
-          --admin_email=test@example.com --allow-root
-
-          wp plugin install woocommerce --activate --path=/tmp/wordpress
-          --allow-root
       - name: Install and activate plugin
-        run: >
-          mkdir -p
-          /tmp/wordpress/wp-content/plugins/chooseyourbestsellingproducts
+        run: |
+          mkdir -p /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
+          cp -r . /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
+          wp plugin activate choose-your-best-selling-products --path=/tmp/wordpress --allow-root
 
-          cp -r .
-          /tmp/wordpress/wp-content/plugins/chooseyourbestsellingproducts
+      - name: Run PHPUnit tests
+        id: test
+        run: |
+          cd /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
+          result=$(vendor/bin/phpunit --verbose 2>&1 || true)
+          echo "$result" > test_output.txt
+          echo "result=$result" >> $GITHUB_OUTPUT
 
-          wp plugin activate chooseyourbestsellingproducts --path=/tmp/wordpress
-          --allow-root
+          if echo "$result" | grep -i "Warning"; then
+            echo "has_warning=true" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$result" | grep -i "Error"; then
+            echo "has_error=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Email if Test Fails or Has Warning
+        if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[Test Alert] Plugin Test Failed or Warned on WP ${{ env.WP_VERSION }}"
+          to: your@email.com
+          from: CBSP Plugin Bot <your@email.com>
+          body: |
+            Hello 👋
+
+            Test failed or returned warnings while testing plugin `choose-your-best-selling-products`.
+
+            💡 Environment:
+            - WordPress: ${{ env.WP_VERSION }}
+            - PHP: 8.2
+            - MySQL: 5.7
+
+            🧪 PHPUnit Output:
+            ${{ steps.test.outputs.result }}
+
+      - name: Fail job if Error or Warning
+        if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
+        run: exit 1
