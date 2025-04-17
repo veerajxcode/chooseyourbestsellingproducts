@@ -1,9 +1,9 @@
-name: CBSP Plugin Test on WP Update
-
-on:
-  schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes for testing
-
+name: CBSP Plugin Tests
+'on':
+  push:
+    branches:
+      - bug-fixes
+  pull_request: null
 jobs:
   check-wp-version:
     runs-on: ubuntu-latest
