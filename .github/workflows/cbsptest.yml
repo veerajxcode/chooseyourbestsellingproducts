@@ -106,7 +106,7 @@ jobs:
       - name: Run PHPUnit tests
         id: test
         run: |
-          result=$(vendor/bin/phpunit --verbose 2>&1 || true)
+          result=$(vendor/bin/phpunit --debug 2>&1 || true)
           echo "$result" > test_output.txt
           echo "result=$result" >> $GITHUB_OUTPUT
 
