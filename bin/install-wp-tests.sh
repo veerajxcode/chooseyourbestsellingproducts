@@ -157,15 +157,14 @@ create_db() {
 }
 
 install_db() {
-
 	if [ ${SKIP_DB_CREATE} = "true" ]; then
 		return 0
 	fi
 
 	# parse DB_HOST for port or socket references
 	local PARTS=(${DB_HOST//\:/ })
-	local DB_HOSTNAME=${PARTS[0]};
-	local DB_SOCK_OR_PORT=${PARTS[1]};
+	local DB_HOSTNAME=${PARTS[0]}
+	local DB_SOCK_OR_PORT=${PARTS[1]}
 	local EXTRA=""
 
 	if ! [ -z $DB_HOSTNAME ] ; then
@@ -182,12 +181,20 @@ install_db() {
 	if [ $(mysql --user="$DB_USER" --password="$DB_PASS"$EXTRA --execute='show databases;' | grep ^$DB_NAME$) ]
 	then
 		echo "Reinstalling will delete the existing test database ($DB_NAME)"
-		read -p 'Are you sure you want to proceed? [y/N]: ' DELETE_EXISTING_DB
+
+		if [ "$WP_TESTS_FORCE_REINSTALL" = "1" ]; then
+			echo "WP_TESTS_FORCE_REINSTALL is set. Automatically confirming database recreation."
+			DELETE_EXISTING_DB="y"
+		else
+			read -p 'Are you sure you want to proceed? [y/N]: ' DELETE_EXISTING_DB
+		fi
+
 		recreate_db $DELETE_EXISTING_DB
 	else
 		create_db
 	fi
 }
+
 
 install_wp
 install_test_suite
