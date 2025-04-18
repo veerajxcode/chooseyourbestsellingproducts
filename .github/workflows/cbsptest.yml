@@ -98,6 +98,11 @@ jobs:
           cp -r . /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
           wp plugin activate choose-your-best-selling-products --path=/tmp/wordpress --allow-root
 
+      - name: Check PHPUnit Version
+        run: |
+          ls -al vendor/bin
+          vendor/bin/phpunit --version
+
       - name: Run PHPUnit tests
         id: test
         run: |
@@ -112,7 +117,7 @@ jobs:
           if echo "$result" | grep -i "Error"; then
             echo "has_error=true" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Send Email if Test Fails or Has Warning
         if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
         uses: dawidd6/action-send-mail@v3
