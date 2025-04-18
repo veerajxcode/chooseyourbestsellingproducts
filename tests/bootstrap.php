@@ -1,5 +1,18 @@
 <?php
-// Load WordPress test environment.
+// Load Composer autoloader
+if ( file_exists( dirname( __DIR__ ) . '/vendor/autoload.php' ) ) {
+    require_once dirname( __DIR__ ) . '/vendor/autoload.php';
+} else {
+    echo "Composer autoload not found. Run 'composer install'.\n";
+    exit(1);
+}
+
+// Optional: manually define the Polyfills path if needed
+if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+    define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', dirname( __DIR__ ) . '/vendor/yoast/phpunit-polyfills' );
+}
+
+// Load WordPress test environment
 $_tests_dir = getenv('WP_TESTS_DIR') ?: '/tmp/wordpress-tests-lib';
 
 require_once $_tests_dir . '/includes/functions.php';
