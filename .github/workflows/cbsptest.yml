@@ -98,13 +98,21 @@ jobs:
           cp -r . /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
           wp plugin activate choose-your-best-selling-products --path=/tmp/wordpress --allow-root
 
-      - name: Skip PHPUnit (temporarily)
+      - name: Run PHPUnit tests
         id: test
         run: |
-          echo "Skipping PHPUnit for now"
-          echo "result=No tests run" >> $GITHUB_OUTPUT
-          echo "has_warning=false" >> $GITHUB_OUTPUT
-          echo "has_error=false" >> $GITHUB_OUTPUT
+          cd /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
+          result=$(vendor/bin/phpunit --verbose 2>&1 || true)
+          echo "$result" > test_output.txt
+          echo "result=$result" >> $GITHUB_OUTPUT
+
+          if echo "$result" | grep -i "Warning"; then
+            echo "has_warning=true" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$result" | grep -i "Error"; then
+            echo "has_error=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Send Email if Test Fails or Has Warning
         if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
