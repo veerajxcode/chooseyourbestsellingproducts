@@ -102,6 +102,9 @@ jobs:
         run: |
           ls -al vendor/bin
           vendor/bin/phpunit --version
+      
+      - name: Install Subversion (svn)
+        run: sudo apt-get update && sudo apt-get install -y subversion
 
       - name: Install WP Test Suite
         run: |
