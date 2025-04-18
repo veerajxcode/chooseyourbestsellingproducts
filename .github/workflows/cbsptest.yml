@@ -117,6 +117,9 @@ jobs:
       - name: Install Subversion (svn)
         run: sudo apt-get update && sudo apt-get install -y subversion
 
+      - name: Set Polyfills Path
+        run: echo "WP_TESTS_PHPUNIT_POLYFILLS_PATH=$PWD/vendor/yoast/phpunit-polyfills" >> $GITHUB_ENV
+
       - name: Install WP Test Suite
         env:
           WP_TESTS_FORCE_REINSTALL: 1
