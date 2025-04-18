@@ -1,9 +1,11 @@
 name: CBSP Plugin Tests
+
 'on':
   push:
     branches:
       - bug-fixes
   pull_request: null
+
 jobs:
   check-wp-version:
     runs-on: ubuntu-latest
@@ -51,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       WP_VERSION: ${{ needs.check-wp-version.outputs.wp_version }}
+      WP_TESTS_PHPUNIT_POLYFILLS_PATH: vendor/yoast/phpunit-polyfills
 
     services:
       mysql:
@@ -73,12 +76,20 @@ jobs:
         with:
           php-version: '8.2'
 
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y unzip
           composer install --no-interaction --prefer-dist --optimize-autoloader
-          composer dump-autoload
 
       - name: Install WordPress & WooCommerce
         run: |
@@ -102,7 +113,7 @@ jobs:
         run: |
           ls -al vendor/bin
           vendor/bin/phpunit --version
-      
+
       - name: Install Subversion (svn)
         run: sudo apt-get update && sudo apt-get install -y subversion
 
@@ -111,7 +122,6 @@ jobs:
           WP_TESTS_FORCE_REINSTALL: 1
         run: |
           bash bin/install-wp-tests.sh wordpress_test root root 127.0.0.1 latest
-
 
       - name: Run PHPUnit tests
         id: test
@@ -155,6 +165,7 @@ jobs:
       - name: Fail job if Error or Warning
         if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
         run: exit 1
+
       - name: Send Success Email if All Good
         if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
         uses: dawidd6/action-send-mail@v3
@@ -175,7 +186,7 @@ jobs:
             - ✔️ WordPress Installed (v${{ env.WP_VERSION }})
             - ✔️ WooCommerce Installed
             - ✔️ Plugin Activated
-            - ✔️ No PHPUnit Warnings or Errors (PHPUnit currently skipped)
+            - ✔️ No PHPUnit Warnings or Errors
 
             ℹ️ Test environment:
             - PHP: 8.2
