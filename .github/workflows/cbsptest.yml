@@ -101,7 +101,6 @@ jobs:
       - name: Run PHPUnit tests
         id: test
         run: |
-          cd /tmp/wordpress/wp-content/plugins/choose-your-best-selling-products
           result=$(vendor/bin/phpunit --verbose 2>&1 || true)
           echo "$result" > test_output.txt
           echo "result=$result" >> $GITHUB_OUTPUT
@@ -113,7 +112,7 @@ jobs:
           if echo "$result" | grep -i "Error"; then
             echo "has_error=true" >> $GITHUB_OUTPUT
           fi
-
+          
       - name: Send Email if Test Fails or Has Warning
         if: steps.test.outputs.has_error == 'true' || steps.test.outputs.has_warning == 'true'
         uses: dawidd6/action-send-mail@v3
