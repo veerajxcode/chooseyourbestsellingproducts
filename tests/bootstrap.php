@@ -1,4 +1,12 @@
 <?php
+// Define polyfills path for WP test suite.
+if ( ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+    define(
+        'WP_TESTS_PHPUNIT_POLYFILLS_PATH',
+        __DIR__ . '/../vendor/yoast/phpunit-polyfills'
+    );
+}
+
 // Load WordPress test environment.
 $_tests_dir = getenv('WP_TESTS_DIR') ?: '/tmp/wordpress-tests-lib';
 
@@ -9,7 +17,6 @@ if (!file_exists($_tests_dir . '/includes/functions.php')) {
 
 require_once $_tests_dir . '/includes/functions.php';
 
-// Manually load the plugin.
 function _manually_load_plugin() {
     $plugin_file = __DIR__ . '/../choose-your-best-selling-products/choose-your-best-selling-products.php';
 
