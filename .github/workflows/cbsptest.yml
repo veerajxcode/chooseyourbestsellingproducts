@@ -131,7 +131,10 @@ jobs:
         run: |
           result=$(vendor/bin/phpunit --debug 2>&1 || true)
           echo "$result" > test_output.txt
-          echo "result=$result" >> $GITHUB_OUTPUT
+
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
           if echo "$result" | grep -i "Warning"; then
             echo "has_warning=true" >> $GITHUB_OUTPUT
