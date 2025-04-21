@@ -35,7 +35,8 @@ jobs:
           zip -r plugin.zip choose-your-best-selling-products
 
       - name: Upload plugin zip as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: CBSP-Plugin-Build
           path: build-release/plugin.zip
+
