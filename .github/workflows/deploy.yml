@@ -1,42 +1,16 @@
-name: Deploy CBSP Plugin (Dry Run)
+- name: Create GitHub Release (Dry Run)
+  uses: ncipollo/release-action@v1
+  with:
+    tag: dry-run-${{ github.run_number }}
+    name: "CBSP Plugin Dry Run Build - Run #${{ github.run_number }}"
+    body: |
+      🧪 This is an automated dry-run build of the CBSP plugin.
 
-on:
-  workflow_dispatch:
-  workflow_call:
+      ✅ Built using WordPress version: ${{ env.WP_VERSION }}
+      📦 Contains only production-ready files.
+      🔐 Not yet pushed to SVN.
 
-jobs:
-  build-deploy-package:
-    name: Build Plugin Package
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader
-
-      - name: Skip JS build (already built locally)
-        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
-
-      - name: Prepare clean build-release/ folder
-        run: |
-          mkdir build-release
-          rsync -av --exclude-from=.distignore ./ build-release/choose-your-best-selling-products/
-
-      - name: Zip the plugin
-        run: |
-          cd build-release
-          zip -r plugin.zip choose-your-best-selling-products
-
-      - name: Upload plugin zip as artifact
-        uses: actions/upload-artifact@5c7e7e3b8023653b20e519dd97e49bcfd4d05e60
-        with:
-          name: CBSP-Plugin-Build
-          path: build-release/plugin.zip
-
+      Download the plugin `.zip` from the Assets below 👇
+    draft: true
+    artifacts: build-release/plugin.zip
+    token: ${{ secrets.GITHUB_TOKEN }}
