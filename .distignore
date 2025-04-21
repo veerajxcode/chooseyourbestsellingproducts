@@ -1,26 +1,23 @@
-- .git/
-- .github/
-+ **/.git/**
-+ **/.github/**
-+ **/tests/**
-+ **/bin/**
-+ **/vendor/bin/**
-+ **/node_modules/**
-+ **/package.json
-+ **/package-lock.json
-+ **/composer.json
-+ **/composer.lock
-+ **/phpunit.xml*
-+ **/*.yml
-+ **/*.log
-+ **/.env
-+ **/.gitignore
-+ **/.babelrc
-+ **/.eslintignore
-+ **/.eslintrc.json
-+ **/LICENSE
-+ **/phpcs.xml
-+ **/README.md
-+ **/webpack.config.js
-+ **/.last-wp-version
-+ **/.distignore
+.git/
+.github/
+tests/
+bin/
+vendor/bin/
+node_modules/
+package.json
+package-lock.json
+composer.json
+composer.lock
+phpunit.xml*
+*.yml
+*.log
+.env
+.gitignore
+.babelrc
+.eslintignore
+.eslintrc.json
+LICENSE
+phpcs.xml
+README.md
+webpack.config.js
+.last-wp-version
