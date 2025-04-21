@@ -1,4 +1,8 @@
 - name: Create GitHub Release (Dry Run)
+  on:
+  workflow_dispatch:
+  workflow_call:
+  
   uses: ncipollo/release-action@v1
   with:
     tag: dry-run-${{ github.run_number }}
