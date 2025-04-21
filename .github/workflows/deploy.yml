@@ -51,6 +51,6 @@ jobs:
             🚫 Not yet deployed to SVN.
           draft: true
           artifacts: build-release/plugin.zip
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DEPLOY_PAT }}
 
 
