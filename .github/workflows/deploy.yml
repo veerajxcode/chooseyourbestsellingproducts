@@ -24,13 +24,9 @@ jobs:
       - name: Skip JS build (already built locally)
         run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
 
-      - name: Prepare production folder
+      - name: Create cbsp.zip from root using .distignore
         run: |
-          rsync -av --exclude-from=.distignore
-
-      - name: Zip the plugin
-        run: |
-          zip -r cbsp.zip
+          zip -r cbsp.zip . -x@.distignore
 
       - name: Create GitHub Draft Release with Plugin Zip
         uses: ncipollo/release-action@v1
@@ -48,7 +44,5 @@ jobs:
 
             🚫 Not yet deployed to SVN.
           draft: true
-          artifacts: build-release/plugin.zip
+          artifacts: cbsp.zip
           token: ${{ secrets.DEPLOY_PAT }}
-
-
