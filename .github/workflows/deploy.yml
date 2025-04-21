@@ -26,7 +26,7 @@ jobs:
 
       - name: Create cbsp.zip from root using .distignore
         run: |
-          zip -r cbsp.zip . -x@.distignore
+          zip -r choose-your-best-selling-products.zip . -x@.distignore
 
       - name: Create GitHub Draft Release with Plugin Zip
         uses: ncipollo/release-action@v1
