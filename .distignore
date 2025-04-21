@@ -4,8 +4,8 @@ tests/*
 bin/*
 vendor/bin/
 node_modules/
-src/img/*
-src/js/*
+assets/src/img/*
+assets/src/js/*
 package.json
 package-lock.json
 composer.json
