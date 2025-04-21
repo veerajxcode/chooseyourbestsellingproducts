@@ -207,7 +207,7 @@ jobs:
         if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.DEPLOY_PAT }}
           script: |
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
