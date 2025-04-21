@@ -1,20 +1,56 @@
-- name: Create GitHub Release (Dry Run)
-  on:
+name: Deploy CBSP Plugin (Dry Run)
+
+on:
   workflow_dispatch:
   workflow_call:
-  
-  uses: ncipollo/release-action@v1
-  with:
-    tag: dry-run-${{ github.run_number }}
-    name: "CBSP Plugin Dry Run Build - Run #${{ github.run_number }}"
-    body: |
-      🧪 This is an automated dry-run build of the CBSP plugin.
 
-      ✅ Built using WordPress version: ${{ env.WP_VERSION }}
-      📦 Contains only production-ready files.
-      🔐 Not yet pushed to SVN.
+jobs:
+  build-deploy-package:
+    name: Build Plugin Package
+    runs-on: ubuntu-latest
 
-      Download the plugin `.zip` from the Assets below 👇
-    draft: true
-    artifacts: build-release/plugin.zip
-    token: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
+
+      - name: Skip JS build (already built locally)
+        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
+
+      - name: Prepare clean build-release/ folder
+        run: |
+          mkdir build-release
+          rsync -av --exclude-from=.distignore ./ build-release/choose-your-best-selling-products/
+
+      - name: Zip the plugin
+        run: |
+          cd build-release
+          zip -r plugin.zip choose-your-best-selling-products
+
+      - name: Create GitHub Draft Release with Plugin Zip
+        uses: ncipollo/release-action@v1
+        with:
+          tag: dry-run-${{ github.run_number }}
+          name: "CBSP Plugin Dry Run - Run #${{ github.run_number }}"
+          body: |
+            🧪 This is an automated **dry run** deploy of the `choose-your-best-selling-products` plugin.
+
+            ✅ WordPress tested version: ${{ env.WP_VERSION || 'latest' }}
+            ✅ Plugin build passed all checks
+
+            📦 This release contains the plugin package as built by GitHub Actions.
+            📥 Download the plugin zip from the "Assets" section below.
+
+            🚫 Not yet deployed to SVN.
+          draft: true
+          artifacts: build-release/plugin.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+
