@@ -27,7 +27,6 @@ jobs:
       - name: Prepare clean build-release/ folder
         run: |
           mkdir build-release
-
           rsync -av --exclude-from=.distignore ./ build-release/choose-your-best-selling-products/
 
       - name: Zip the plugin
@@ -35,27 +34,8 @@ jobs:
           cd build-release
           zip -r plugin.zip choose-your-best-selling-products
 
-      - name: Email zipped plugin
-        uses: dawidd6/action-send-mail@v3
+      - name: Upload plugin zip as artifact
+        uses: actions/upload-artifact@v3
         with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[Dry Run] CBSP Plugin Deploy Package Ready"
-          to: your@email.com
-          from: CBSP Plugin Bot <your@email.com>
-          body: |
-            Hello 👋
-
-            The dry run for CBSP plugin deploy is complete. Your zipped production-ready plugin is attached.
-
-            ✔️ Includes only necessary files
-            ❌ Not yet pushed to SVN
-            📦 Built using current main branch content
-
-            You can download and verify the ZIP package now.
-
-            Regards,  
-            CBSP Deploy Bot
-          attachments: build-release/plugin.zip
+          name: CBSP-Plugin-Build
+          path: build-release/plugin.zip
