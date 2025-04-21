@@ -21,16 +21,8 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Install Node & Build Assets (if applicable)
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - name: Run Build (optional, adjust as needed)
-        run: |
-          if [ -f package.json ]; then
-            npm ci
-            npm run build
-          fi
+      - name: Skip JS build (already built locally)
+        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
 
       - name: Prepare clean build-release/ folder
         run: |
