@@ -1,9 +1,9 @@
+.git/
 .github/
 tests/
 bin/
 vendor/bin/
 node_modules/
-src/
 package.json
 package-lock.json
 composer.json
@@ -18,5 +18,7 @@ phpunit.xml*
 .eslintrc.json
 LICENSE
 phpcs.xml
-READEME.md
+README.md
 webpack.config.js
+.last-wp-version
+.distignore

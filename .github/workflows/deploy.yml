@@ -24,15 +24,13 @@ jobs:
       - name: Skip JS build (already built locally)
         run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
 
-      - name: Prepare clean build-release/ folder
+      - name: Prepare production folder
         run: |
-          mkdir build-release
-          rsync -av --exclude-from=.distignore ./ build-release/choose-your-best-selling-products/
+          rsync -av --exclude-from=.distignore
 
       - name: Zip the plugin
         run: |
-          cd build-release
-          zip -r plugin.zip choose-your-best-selling-products
+          zip -r cbsp.zip
 
       - name: Create GitHub Draft Release with Plugin Zip
         uses: ncipollo/release-action@v1
