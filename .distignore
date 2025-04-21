@@ -1,7 +1,7 @@
-.git/
-.github/
-tests/
-bin/
+.git/*
+.github/*
+tests/*
+bin/*
 vendor/bin/
 node_modules/
 package.json
@@ -21,3 +21,4 @@ phpcs.xml
 README.md
 webpack.config.js
 .last-wp-version
+*.distignore
