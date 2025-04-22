@@ -1,86 +1,77 @@
 name: Deploy CBSP Plugin to WordPress SVN
 
 on:
-  workflow_run:
-    workflows: ["cbsp-prepare-zip"]  
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      wp_version:
+        required: true
+        type: string
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     env:
+      PLUGIN_SLUG: choose-your-best-selling-products
       SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
       SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-      PLUGIN_SLUG: choose-your-best-selling-products
       SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
-      - name: Download plugin ZIP artifact
+      - name: Download plugin ZIP artifact from parent job
         uses: actions/download-artifact@v4
         with:
           name: cbsp-prepare-zip
-          path: ./artifact
+          path: ./zip
 
-      - name: Extract ZIP
+      - name: Extract plugin ZIP
         run: |
-          unzip ./artifact/choose-your-best-selling-products.zip -d ./plugin
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
+          unzip ./zip/choose-your-best-selling-products.zip -d extracted
 
       - name: Get plugin version
         id: plugin_version
         run: |
-          version=$(grep -i "Version:" ./plugin/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
-          echo "Plugin version: $version"
+          version=$(grep -i "Version:" extracted/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "version=$version" >> $GITHUB_OUTPUT
 
       - name: Install Subversion
         run: sudo apt-get update && sudo apt-get install -y subversion
 
-      - name: Checkout SVN repo
+      - name: Checkout SVN repository
         run: |
-          svn checkout --username ${{ env.SVN_USERNAME }} --password ${{ env.SVN_PASSWORD }} --non-interactive ${{ env.SVN_URL }} svn
+          svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive ${{ env.SVN_URL }} svn
 
-      - name: Backup current trunk (for rollback)
+      - name: Backup current trunk
         run: cp -r svn/trunk svn/_trunk_backup
 
-      - name: Clean trunk (preserve .svn)
+      - name: Clean existing trunk contents (preserve .svn)
         run: |
           find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
 
-      - name: Sync plugin to trunk
+      - name: Sync extracted files to trunk
         run: |
-          rsync -av --delete ./plugin/ svn/trunk/
+          rsync -av ./extracted/ svn/trunk/
 
-      - name: Create new tag if version is not tagged
+      - name: Tag version if not exists
         run: |
           if ! svn ls ${{ env.SVN_URL }}tags/${{ steps.plugin_version.outputs.version }} > /dev/null 2>&1; then
             svn cp svn/trunk svn/tags/${{ steps.plugin_version.outputs.version }}
           else
-            echo "Tag already exists. Skipping tag creation."
+            echo "✅ Tag already exists. Skipping..."
           fi
 
-      - name: SVN Commit
+      - name: Commit to SVN
         run: |
           cd svn
           svn add --force . --auto-props --parents --depth infinity -q
           svn status
-          svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (GitHub Run #${{ github.run_number }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
-            echo "❌ Commit failed. Rolling back trunk..."
+          svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (tested on WP ${{ inputs.wp_version }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
+            echo "❌ Commit failed. Rolling back..."
             svn revert -R .
             rm -rf trunk
-            cp -r _trunk_backup trunk
+            mv _trunk_backup trunk
             exit 1
           }
-
-      - name: Cleanup backup
-        if: success()
-        run: rm -rf svn/_trunk_backup
 
       - name: ✅ Done
         run: echo "🎉 Successfully deployed version ${{ steps.plugin_version.outputs.version }}!"

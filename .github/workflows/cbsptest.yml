@@ -218,15 +218,9 @@ jobs:
           name: cbsp-prepare-zip
           path: choose-your-best-selling-products.zip
 
-      - name: Trigger deploy workflow (dry run)
-        if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.DEPLOY_PAT }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "deploy.yml",
-              ref: "bug-fixes" // or "master" if needed
-            });
+  deploy:
+  needs: test
+  if: needs.test.outputs.has_error != 'true' && needs.test.outputs.has_warning != 'true'
+  uses: ./.github/workflows/deploy.yml
+  with:
+    wp_version: ${{ needs.check-wp-version.outputs.wp_version }}    
