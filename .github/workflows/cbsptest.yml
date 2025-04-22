@@ -215,5 +215,4 @@ jobs:
       - name: Upload zipped plugin
         uses: actions/upload-artifact@v4
         with:
-          name: cbsp-plugin-zip
           path: choose-your-best-selling-products.zip
