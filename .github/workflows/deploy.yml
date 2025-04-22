@@ -11,6 +11,7 @@ jobs:
       SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
       SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
       PLUGIN_SLUG: choose-your-best-selling-products
+      SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
       - name: Checkout plugin code
@@ -36,11 +37,7 @@ jobs:
 
       - name: Checkout SVN repo
         run: |
-          svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/ svn
-
-      - name: Backup current trunk (for rollback)
-        run: |
-          cp -r svn/${{ env.PLUGIN_SLUG }}/trunk svn/${{ env.PLUGIN_SLUG }}/_trunk_backup
+          svn checkout --username ${{ env.SVN_USERNAME }} --password ${{ env.SVN_PASSWORD }} --non-interactive ${{ env.SVN_URL }} svn
 
       - name: Sync plugin to trunk
         run: |
