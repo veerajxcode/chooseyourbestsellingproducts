@@ -208,15 +208,17 @@ jobs:
 
             Have a great day!
 
-      - name: Trigger deploy workflow (dry run)
+      - name: Create plugin ZIP for deployment
         if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
-        uses: actions/github-script@v6
+        run: |
+          npm install -g @wordpress/env
+          mkdir -p dist
+          npx wp-env run cli "cd /var/www/html/wp-content/plugins && wp dist-archive choose-your-best-selling-products /tmp/cbsp.zip"
+          cp /tmp/cbsp.zip ./dist/choose-your-best-selling-products.zip
+
+      - name: Upload plugin ZIP artifact
+        if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
+        uses: actions/upload-artifact@v4
         with:
-          github-token: ${{ secrets.DEPLOY_PAT }}
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "deploy.yml",
-              ref: "bug-fixes" // or "master" if needed
-            });
+          name: cbsp-plugin-zip
+          path: ./dist/choose-your-best-selling-products.zip
