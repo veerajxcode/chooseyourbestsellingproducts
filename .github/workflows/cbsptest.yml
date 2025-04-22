@@ -8,50 +8,52 @@ name: CBSP Plugin Tests
 
 jobs:
   check-wp-version:
-    runs-on: ubuntu-latest
-    outputs:
-      should_run_tests: ${{ steps.check.outputs.should_run }}
-      wp_version: ${{ steps.check.outputs.wp_version }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+  runs-on: ubuntu-latest
+  outputs:
+    should_run_tests: ${{ steps.check.outputs.should_run }}
+    wp_version: ${{ steps.check.outputs.wp_version }}
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
 
-      - name: Get latest WordPress version
-        id: check
-        run: |
-          latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
-          echo "Latest WordPress version: $latest"
+    - name: Download .last-wp-version artifact (if exists)
+      uses: actions/download-artifact@v4
+      with:
+        name: last-wp-version
+        path: ./version-cache
+      continue-on-error: true
 
-          if [ -f .last-wp-version ]; then
-            last=$(cat .last-wp-version | tr -d '\n\r')  # remove whitespace/newlines
-          else
-            last=""
-          fi
+    - name: Get latest WordPress version & compare
+      id: check
+      run: |
+        mkdir -p ./version-cache
+        latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
+        echo "Latest WordPress version: $latest"
 
-          # Check if version is empty or outdated
-          if [ -z "$last" ] || [ "$latest" != "$last" ]; then
-            echo "WordPress version updated or not tracked yet. Saving version: $latest"
-            echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "$latest" > .last-wp-version
-          else
-            echo "WordPress version is up to date. No test needed."
-            echo "should_run=false" >> $GITHUB_OUTPUT
-          fi
+        if [ -f ./version-cache/.last-wp-version ]; then
+          last=$(cat ./version-cache/.last-wp-version | tr -d '\n\r')
+        else
+          last=""
+        fi
 
-          echo "wp_version=$latest" >> $GITHUB_OUTPUT
+        echo "Last tested version: $last"
 
-      - name: Commit updated WP version
-        if: steps.check.outputs.should_run == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_PAT }}
-        run: |
-          git config user.name "veerajxcode"
-          git config user.email "veeraj11yadav@gmail.com"
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
-          git add .last-wp-version
-          git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
-          git push origin HEAD:${{ github.ref_name }}
-        continue-on-error: true
+        if [ -z "$last" ] || [ "$latest" != "$last" ]; then
+          echo "$latest" > ./version-cache/.last-wp-version
+          echo "should_run=true" >> $GITHUB_OUTPUT
+        else
+          echo "should_run=false" >> $GITHUB_OUTPUT
+        fi
+
+        echo "wp_version=$latest" >> $GITHUB_OUTPUT
+
+    - name: Upload updated .last-wp-version
+      if: steps.check.outputs.should_run == 'true'
+      uses: actions/upload-artifact@v4
+      with:
+        name: last-wp-version
+        path: ./version-cache/.last-wp-version
+
 
   test:
     needs: check-wp-version
