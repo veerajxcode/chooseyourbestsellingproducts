@@ -5,8 +5,7 @@ on:
   workflow_call:
 
 jobs:
-  build-deploy-package:
-    name: Build Plugin Package
+  dry-run-svn:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,28 +20,43 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Skip JS build (already built locally)
-        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
-
-      - name: Create cbsp.zip from root using .distignore
+      - name: Get plugin version
+        id: plugin_version
         run: |
-          zip -r choose-your-best-selling-products.zip . -x@.distignore
+          version=$(grep -i "Version:" choose-your-best-selling-products.php | cut -d ':' -f2 | xargs)
+          echo "Plugin version: $version"
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Create GitHub Draft Release with Plugin Zip
+      - name: Prepare SVN trunk/ folder (dry run)
+        run: |
+          mkdir -p svn/choose-your-best-selling-products/trunk
+          rsync -av --exclude-from=.distignore ./ svn/choose-your-best-selling-products/trunk
+
+      - name: Preview trunk contents (dry run)
+        run: |
+          echo "Trunk contents:"
+          find svn/choose-your-best-selling-products/trunk
+
+      - name: Upload prepared trunk as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cbsp-trunk-folder
+          path: svn/choose-your-best-selling-products/trunk
+
+      - name: Create GitHub Draft Release (dry run)
         uses: ncipollo/release-action@v1
         with:
           tag: dry-run-${{ github.run_number }}
-          name: "CBSP Plugin Dry Run - Run #${{ github.run_number }}"
+          name: "CBSP Plugin SVN Dry Run - #${{ github.run_number }}"
           body: |
-            🧪 This is an automated **dry run** deploy of the `choose-your-best-selling-products` plugin.
+            🧪 This is a **dry run** of preparing SVN `trunk/` folder for deploy.
 
-            ✅ WordPress tested version: ${{ env.WP_VERSION || 'latest' }}
-            ✅ Plugin build passed all checks
+            ✅ Version: `${{ steps.plugin_version.outputs.version }}`
+            ✅ Files filtered using `.distignore`
+            📂 Plugin files prepared in `svn/choose-your-best-selling-products/trunk/`
 
-            📦 This release contains the plugin package as built by GitHub Actions.
-            📥 Download the plugin zip from the "Assets" section below.
+            No push/commit has been made to the WordPress.org SVN repo.
 
-            🚫 Not yet deployed to SVN.
+            Please review the GitHub artifact: **cbsp-trunk-folder**
           draft: true
-          artifacts: choose-your-best-selling-products.zip
           token: ${{ secrets.DEPLOY_PAT }}
