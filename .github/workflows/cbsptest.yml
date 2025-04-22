@@ -93,22 +93,9 @@ jobs:
           key: composer-${{ hashFiles('**/composer.lock') }}
           restore-keys: composer-
 
-      - name: Install Composer dependencies (prod only)
+      - name: Trim vendor folder to only keep composer and autoload.php
         run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
-          composer install --no-dev --optimize-autoloader
-
-          # Retain only autoload.php and composer/ folder in vendor
-          shopt -s extglob
-          cd vendor
-          mkdir _keep && mv autoload.php composer _keep/ 2>/dev/null || true
-          rm -rf !(autoload.php|composer)
-          mv _keep/* . 2>/dev/null || true
-          rmdir _keep 2>/dev/null || true
-          cd ..
-          shopt -u extglob
-
+          find vendor -mindepth 1 -maxdepth 1 ! -name 'composer' ! -name 'autoload.php' -exec rm -rf {} +
 
       - name: Install WordPress & WooCommerce
         run: |
