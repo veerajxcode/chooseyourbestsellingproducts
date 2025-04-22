@@ -31,6 +31,9 @@ jobs:
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
+      - name: Install Subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
       - name: Checkout SVN repo
         run: |
           svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/ svn
