@@ -14,21 +14,21 @@ jobs:
       SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
-      - name: Checkout plugin code
-        uses: actions/checkout@v4
-
-      - name: Set up PHP
-        uses: shivammathur/setup-php@v2
+      - name: Download plugin ZIP artifact from previous workflow
+        uses: actions/download-artifact@v4
         with:
-          php-version: '8.2'
+          name: cbsp-prepare-zip
+          path: ./zip
 
-      - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader
+      - name: Extract plugin ZIP
+        run: |
+          unzip ./zip/choose-your-best-selling-products.zip -d extracted
+          ls -la extracted
 
-      - name: Get plugin version
+      - name: Get plugin version from extracted folder
         id: plugin_version
         run: |
-          version=$(grep -i "Version:" ${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
+          version=$(grep -i "Version:" extracted/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
@@ -46,9 +46,9 @@ jobs:
         run: |
           find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
 
-      - name: Sync plugin to trunk (safely)
+      - name: Sync extracted plugin to trunk
         run: |
-          rsync -av --delete --exclude-from=.distignore --exclude='.svn/' ./ svn/trunk/
+          rsync -av --delete ./extracted/ svn/trunk/
 
       - name: Create new tag if version is not tagged
         run: |
