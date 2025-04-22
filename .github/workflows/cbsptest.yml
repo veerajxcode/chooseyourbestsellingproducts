@@ -219,8 +219,8 @@ jobs:
           path: choose-your-best-selling-products.zip
 
   deploy:
-  needs: test
-  if: needs.test.outputs.has_error != 'true' && needs.test.outputs.has_warning != 'true'
-  uses: ./.github/workflows/deploy.yml
-  with:
-    wp_version: ${{ needs.check-wp-version.outputs.wp_version }}    
+    needs: test
+    if: needs.test.outputs.has_error != 'true' && needs.test.outputs.has_warning != 'true'
+    uses: ./.github/workflows/deploy.yml
+    with:
+      wp_version: ${{ needs.check-wp-version.outputs.wp_version }}    
