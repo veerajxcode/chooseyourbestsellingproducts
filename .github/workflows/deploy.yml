@@ -1,15 +1,16 @@
-name: Deploy CBSP Plugin (SVN Dry Run)
+name: Deploy CBSP Plugin to WordPress SVN
 
 on:
   workflow_dispatch:
 
 jobs:
-  svn-dry-run:
+  deploy:
     runs-on: ubuntu-latest
 
     env:
+      SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
       PLUGIN_SLUG: choose-your-best-selling-products
-      SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
       - name: Checkout plugin code
@@ -29,47 +30,35 @@ jobs:
           version=$(grep -i "Version:" ${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
-      
-      - name: Install Subversion
-        run: sudo apt-get update && sudo apt-get install -y subversion
 
-      - name: Checkout SVN repo (read-only dry run)
+      - name: Checkout SVN repo
         run: |
-          svn checkout --depth=immediates ${{ env.SVN_URL }} svn
-          cd svn
-          svn update trunk tags
+          svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/ svn
 
-      - name: Backup current trunk
+      - name: Sync plugin to trunk
         run: |
-          cp -r svn/trunk svn/_trunk_backup
+          rsync -av --delete --exclude-from=.distignore ./ svn/${{ env.PLUGIN_SLUG }}/trunk
 
-      - name: Prepare trunk folder with latest plugin files
+      - name: Create new tag if version is not tagged
         run: |
-          rm -rf svn/trunk/*
-          rsync -av --exclude-from=.distignore ./ svn/trunk/
+          if ! svn ls https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/tags/${{ steps.plugin_version.outputs.version }} > /dev/null 2>&1; then
+            svn cp svn/${{ env.PLUGIN_SLUG }}/trunk svn/${{ env.PLUGIN_SLUG }}/tags/${{ steps.plugin_version.outputs.version }}
+          else
+            echo "Tag already exists. Skipping tag creation."
+          fi
 
-      - name: Show prepared trunk structure
+      - name: SVN Commit
         run: |
-          echo "📂 Updated trunk/ contents:"
-          find svn/trunk
-
-      - name: Upload trunk folder as artifact (optional)
-        uses: actions/upload-artifact@v4
-        with:
-          name: choose-your-best-selling-products
-          path: svn/trunk
-      
-      - name: SVN status preview (dry-run)
-        run: |
-          svn status svn/trunk
-
-      - name: Optional Commit to SVN (DISABLED for now)
-        if: false  # <-- change to true or remove when ready to commit
-        run: |
-          cd svn
-          svn add trunk --force
+          cd svn/${{ env.PLUGIN_SLUG }}
+          svn add --force * --auto-props --parents --depth infinity -q
           svn status
-          svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
-            --username ${{ secrets.SVN_USERNAME }} \
-            --password ${{ secrets.SVN_PASSWORD }}
+          svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }}" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
+            echo "❌ Commit failed. Rolling back trunk from tag..."
+            rm -rf trunk
+            svn cp https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/tags/${{ steps.plugin_version.outputs.version }} trunk
+            svn update
+            exit 1
+          }
 
+      - name: ✅ Done
+        run: echo "🎉 Successfully deployed version ${{ steps.plugin_version.outputs.version }}!"
