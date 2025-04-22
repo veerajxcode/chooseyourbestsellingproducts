@@ -38,14 +38,16 @@ jobs:
 
           echo "Last tested version: $last"
 
+          echo "$latest" > ./version-cache/.last-wp-version
+
           if [ -z "$last" ] || [ "$latest" != "$last" ]; then
-            echo "$latest" > ./version-cache/.last-wp-version
             echo "should_run=true" >> $GITHUB_OUTPUT
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
           echo "wp_version=$latest" >> $GITHUB_OUTPUT
+
 
       - name: Upload updated .last-wp-version
         if: steps.check.outputs.should_run == 'true'
