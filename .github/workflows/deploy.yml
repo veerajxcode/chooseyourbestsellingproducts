@@ -29,6 +29,9 @@ jobs:
           version=$(grep -i "Version:" ${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
+      
+      - name: Install Subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
 
       - name: Checkout SVN repo (read-only dry run)
         run: |
