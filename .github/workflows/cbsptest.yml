@@ -47,7 +47,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.DEPLOY_PAT }}
         run: |
-          git config user.name "veerjxcode"
+          git config user.name "veerajxcode"
           git config user.email "veeraj11yadav@gmail.com"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git add .last-wp-version
