@@ -1,7 +1,10 @@
 name: Deploy CBSP Plugin to WordPress SVN
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["cbsp-prepare-zip"]  
+    types:
+      - completed
 
 jobs:
   deploy:
@@ -14,21 +17,25 @@ jobs:
       SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
-      - name: Download plugin ZIP artifact from previous workflow
+      - name: Download plugin ZIP artifact
         uses: actions/download-artifact@v4
         with:
           name: cbsp-prepare-zip
-          path: ./zip
+          path: ./artifact
 
-      - name: Extract plugin ZIP
+      - name: Extract ZIP
         run: |
-          unzip ./zip/choose-your-best-selling-products.zip -d extracted
-          ls -la extracted
+          unzip ./artifact/choose-your-best-selling-products.zip -d ./plugin
 
-      - name: Get plugin version from extracted folder
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+
+      - name: Get plugin version
         id: plugin_version
         run: |
-          version=$(grep -i "Version:" extracted/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
+          version=$(grep -i "Version:" ./plugin/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
@@ -46,9 +53,9 @@ jobs:
         run: |
           find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
 
-      - name: Sync extracted plugin to trunk
+      - name: Sync plugin to trunk
         run: |
-          rsync -av --delete ./extracted/ svn/trunk/
+          rsync -av --delete ./plugin/ svn/trunk/
 
       - name: Create new tag if version is not tagged
         run: |
@@ -71,7 +78,7 @@ jobs:
             exit 1
           }
 
-      - name: Cleanup backup (optional)
+      - name: Cleanup backup
         if: success()
         run: rm -rf svn/_trunk_backup
 
