@@ -63,12 +63,20 @@ jobs:
         run: |
           svn status svn/trunk
 
-      - name: Optional Commit to SVN (DISABLED for now)
-        if: true  # <-- change to true or remove when ready to commit
+      - name: Commit to SVN with rollback on failure
         run: |
           cd svn
           svn add trunk --force
           svn status
-          svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
+          if ! svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
             --username ${{ secrets.SVN_USERNAME }} \
-            --password ${{ secrets.SVN_PASSWORD }}
+            --password ${{ secrets.SVN_PASSWORD }} \
+            --non-interactive; then
+              echo "❌ Commit failed. Rolling back trunk from tag..."
+              rm -rf trunk
+              svn update tags
+              svn cp ^/tags/${{ steps.plugin_version.outputs.version }} trunk
+              svn update trunk
+              echo "✅ Rolled back trunk from tag version ${{ steps.plugin_version.outputs.version }}"
+              exit 1
+          fi
