@@ -23,15 +23,20 @@ jobs:
           echo "Latest WordPress version: $latest"
 
           if [ -f .last-wp-version ]; then
-            last=$(cat .last-wp-version)
+            last=$(cat .last-wp-version | tr -d '\n\r')  # remove whitespace/newlines
           else
             last=""
           fi
 
-          if [ "$latest" != "$last" ]; then
+          echo "Last stored version: '$last'"
+
+          # Check if version is empty or outdated
+          if [ -z "$last" ] || [ "$latest" != "$last" ]; then
+            echo "WordPress version updated or not tracked yet. Saving version: $latest"
             echo "should_run=true" >> $GITHUB_OUTPUT
             echo "$latest" > .last-wp-version
           else
+            echo "WordPress version is up to date. No test needed."
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
@@ -40,8 +45,8 @@ jobs:
       - name: Commit updated WP version
         if: steps.check.outputs.should_run == 'true'
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
+          git config user.name "veerjxcode"
+          git config user.email "veeraj11yadav@gmail.com"
           git add .last-wp-version
           git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
           git push
