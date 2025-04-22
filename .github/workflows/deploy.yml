@@ -42,12 +42,17 @@ jobs:
       - name: Backup current trunk (for rollback)
         run: cp -r svn/trunk svn/_trunk_backup
 
-      - name: Sync plugin to trunk
-        run: rsync -av --delete --exclude-from=.distignore ./ svn/trunk
+      - name: Clean trunk (preserve .svn)
+        run: |
+          find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
+
+      - name: Sync plugin to trunk (safely)
+        run: |
+          rsync -av --delete --exclude-from=.distignore --exclude='.svn/' ./ svn/trunk/
 
       - name: Create new tag if version is not tagged
         run: |
-          if ! svn ls https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/tags/${{ steps.plugin_version.outputs.version }} > /dev/null 2>&1; then
+          if ! svn ls ${{ env.SVN_URL }}tags/${{ steps.plugin_version.outputs.version }} > /dev/null 2>&1; then
             svn cp svn/trunk svn/tags/${{ steps.plugin_version.outputs.version }}
           else
             echo "Tag already exists. Skipping tag creation."
@@ -56,7 +61,7 @@ jobs:
       - name: SVN Commit
         run: |
           cd svn
-          svn add --force * --auto-props --parents --depth infinity -q
+          svn add --force . --auto-props --parents --depth infinity -q
           svn status
           svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (GitHub Run #${{ github.run_number }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
             echo "❌ Commit failed. Rolling back trunk..."
