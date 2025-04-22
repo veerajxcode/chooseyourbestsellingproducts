@@ -28,8 +28,6 @@ jobs:
             last=""
           fi
 
-          echo "Last stored version: '$last'"
-
           # Check if version is empty or outdated
           if [ -z "$last" ] || [ "$latest" != "$last" ]; then
             echo "WordPress version updated or not tracked yet. Saving version: $latest"
