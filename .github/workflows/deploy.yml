@@ -39,9 +39,13 @@ jobs:
         run: |
           svn checkout --username ${{ env.SVN_USERNAME }} --password ${{ env.SVN_PASSWORD }} --non-interactive ${{ env.SVN_URL }} svn
 
+      - name: Backup current trunk (for rollback)
+        run: |
+          cp -r svn/trunk svn/_trunk_backup
+
       - name: Sync plugin to trunk
         run: |
-          rsync -av --delete --exclude-from=.distignore ./ svn/${{ env.PLUGIN_SLUG }}/trunk
+          rsync -av --delete --exclude-from=.distignore ./ svn/trunk
           
 
       - name: Create new tag if version is not tagged
@@ -54,7 +58,7 @@ jobs:
 
       - name: SVN Commit
         run: |
-          cd svn/${{ env.PLUGIN_SLUG }}
+          cd svn
           svn add --force * --auto-props --parents --depth infinity -q
           svn status
           svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (GitHub Run #${{ github.run_number }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
