@@ -1,15 +1,18 @@
-name: Deploy CBSP Plugin (Dry Run)
+name: Deploy CBSP Plugin (SVN Dry Run)
 
 on:
   workflow_dispatch:
-  workflow_call:
 
 jobs:
-  dry-run-svn:
+  svn-dry-run:
     runs-on: ubuntu-latest
 
+    env:
+      PLUGIN_SLUG: choose-your-best-selling-products
+      SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
+
     steps:
-      - name: Checkout code
+      - name: Checkout plugin code
         uses: actions/checkout@v4
 
       - name: Set up PHP
@@ -23,40 +26,32 @@ jobs:
       - name: Get plugin version
         id: plugin_version
         run: |
-          version=$(grep -i "Version:" choose-your-best-selling-products.php | cut -d ':' -f2 | xargs)
+          version=$(grep -i "Version:" ${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
           echo "Plugin version: $version"
           echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Prepare SVN trunk/ folder (dry run)
+      - name: Checkout SVN repo (read-only dry run)
         run: |
-          mkdir -p svn/choose-your-best-selling-products/trunk
-          rsync -av --exclude-from=.distignore ./ svn/choose-your-best-selling-products/trunk
+          svn checkout --depth=immediates ${{ env.SVN_URL }} svn
+          cd svn
+          svn update trunk tags
 
-      - name: Preview trunk contents (dry run)
+      - name: Backup current trunk
         run: |
-          echo "Trunk contents:"
-          find svn/choose-your-best-selling-products/trunk
+          cp -r svn/trunk svn/_trunk_backup
 
-      - name: Upload prepared trunk as artifact
+      - name: Prepare trunk folder with latest plugin files
+        run: |
+          rm -rf svn/trunk/*
+          rsync -av --exclude-from=.distignore ./ svn/trunk/
+
+      - name: Show prepared trunk structure
+        run: |
+          echo "📂 Updated trunk/ contents:"
+          find svn/trunk
+
+      - name: Upload trunk folder as artifact (optional)
         uses: actions/upload-artifact@v4
         with:
-          name: cbsp-trunk-folder
-          path: svn/choose-your-best-selling-products/trunk
-
-      - name: Create GitHub Draft Release (dry run)
-        uses: ncipollo/release-action@v1
-        with:
-          tag: dry-run-${{ github.run_number }}
-          name: "CBSP Plugin SVN Dry Run - #${{ github.run_number }}"
-          body: |
-            🧪 This is a **dry run** of preparing SVN `trunk/` folder for deploy.
-
-            ✅ Version: `${{ steps.plugin_version.outputs.version }}`
-            ✅ Files filtered using `.distignore`
-            📂 Plugin files prepared in `svn/choose-your-best-selling-products/trunk/`
-
-            No push/commit has been made to the WordPress.org SVN repo.
-
-            Please review the GitHub artifact: **cbsp-trunk-folder**
-          draft: true
-          token: ${{ secrets.DEPLOY_PAT }}
+          name: cbsp-prepared-trunk
+          path: svn/trunk
