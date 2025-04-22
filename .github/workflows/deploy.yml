@@ -58,20 +58,16 @@ jobs:
 
       - name: SVN Commit
         run: |
-          cd svn
+          cd svn/${{ env.PLUGIN_SLUG }}
           svn add --force * --auto-props --parents --depth infinity -q
           svn status
           svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (GitHub Run #${{ github.run_number }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
             echo "❌ Commit failed. Rolling back trunk..."
-            svn revert -R .
             rm -rf trunk
-            cp -r _trunk_backup trunk
+            mv _trunk_backup trunk
+            svn revert -R .
             exit 1
           }
-      
-      - name: Cleanup backup
-        if: success()
-        run: rm -rf svn/_trunk_backup
 
       - name: ✅ Done
         run: echo "🎉 Successfully deployed version ${{ steps.plugin_version.outputs.version }}!"
