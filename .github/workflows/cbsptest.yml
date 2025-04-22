@@ -8,52 +8,51 @@ name: CBSP Plugin Tests
 
 jobs:
   check-wp-version:
-  runs-on: ubuntu-latest
-  outputs:
-    should_run_tests: ${{ steps.check.outputs.should_run }}
-    wp_version: ${{ steps.check.outputs.wp_version }}
-  steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+    runs-on: ubuntu-latest
+    outputs:
+      should_run_tests: ${{ steps.check.outputs.should_run }}
+      wp_version: ${{ steps.check.outputs.wp_version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-    - name: Download .last-wp-version artifact (if exists)
-      uses: actions/download-artifact@v4
-      with:
-        name: last-wp-version
-        path: ./version-cache
-      continue-on-error: true
+      - name: Download .last-wp-version artifact (if exists)
+        uses: actions/download-artifact@v4
+        with:
+          name: last-wp-version
+          path: ./version-cache
+        continue-on-error: true
 
-    - name: Get latest WordPress version & compare
-      id: check
-      run: |
-        mkdir -p ./version-cache
-        latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
-        echo "Latest WordPress version: $latest"
+      - name: Get latest WordPress version & compare
+        id: check
+        run: |
+          mkdir -p ./version-cache
+          latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
+          echo "Latest WordPress version: $latest"
 
-        if [ -f ./version-cache/.last-wp-version ]; then
-          last=$(cat ./version-cache/.last-wp-version | tr -d '\n\r')
-        else
-          last=""
-        fi
+          if [ -f ./version-cache/.last-wp-version ]; then
+            last=$(cat ./version-cache/.last-wp-version | tr -d '\n\r')
+          else
+            last=""
+          fi
 
-        echo "Last tested version: $last"
+          echo "Last tested version: $last"
 
-        if [ -z "$last" ] || [ "$latest" != "$last" ]; then
-          echo "$latest" > ./version-cache/.last-wp-version
-          echo "should_run=true" >> $GITHUB_OUTPUT
-        else
-          echo "should_run=false" >> $GITHUB_OUTPUT
-        fi
+          if [ -z "$last" ] || [ "$latest" != "$last" ]; then
+            echo "$latest" > ./version-cache/.last-wp-version
+            echo "should_run=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_run=false" >> $GITHUB_OUTPUT
+          fi
 
-        echo "wp_version=$latest" >> $GITHUB_OUTPUT
+          echo "wp_version=$latest" >> $GITHUB_OUTPUT
 
-    - name: Upload updated .last-wp-version
-      if: steps.check.outputs.should_run == 'true'
-      uses: actions/upload-artifact@v4
-      with:
-        name: last-wp-version
-        path: ./version-cache/.last-wp-version
-
+      - name: Upload updated .last-wp-version
+        if: steps.check.outputs.should_run == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: last-wp-version
+          path: ./version-cache/.last-wp-version
 
   test:
     needs: check-wp-version
