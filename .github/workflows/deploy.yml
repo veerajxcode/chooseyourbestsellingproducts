@@ -39,10 +39,6 @@ jobs:
           cd svn
           svn update trunk tags
 
-      - name: Backup current trunk
-        run: |
-          cp -r svn/trunk svn/_trunk_backup
-
       - name: Prepare trunk folder with latest plugin files
         run: |
           rm -rf svn/trunk/*
@@ -56,27 +52,5 @@ jobs:
       - name: Upload trunk folder as artifact (optional)
         uses: actions/upload-artifact@v4
         with:
-          name: cbsp-prepared-trunk
+          name: choose-your-best-selling-products
           path: svn/trunk
-
-      - name: SVN status preview (dry-run)
-        run: |
-          svn status svn/trunk
-
-      - name: Commit to SVN with rollback on failure
-        run: |
-          cd svn
-          svn add trunk --force
-          svn status
-          if ! svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
-            --username ${{ secrets.SVN_USERNAME }} \
-            --password ${{ secrets.SVN_PASSWORD }} \
-            --non-interactive; then
-              echo "❌ Commit failed. Rolling back trunk from tag..."
-              rm -rf trunk
-              svn update tags
-              svn cp ^/tags/${{ steps.plugin_version.outputs.version }} trunk
-              svn update trunk
-              echo "✅ Rolled back trunk from tag version ${{ steps.plugin_version.outputs.version }}"
-              exit 1
-          fi
