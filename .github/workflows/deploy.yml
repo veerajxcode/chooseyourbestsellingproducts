@@ -56,5 +56,20 @@ jobs:
       - name: Upload trunk folder as artifact (optional)
         uses: actions/upload-artifact@v4
         with:
-          name: cbsp-prepared-trunk
+          name: choose-your-best-selling-products
           path: svn/trunk
+      
+      - name: SVN status preview (dry-run)
+        run: |
+          svn status svn/trunk
+
+      - name: Optional Commit to SVN (DISABLED for now)
+        if: false  # <-- change to true or remove when ready to commit
+        run: |
+          cd svn
+          svn add trunk --force
+          svn status
+          svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
+            --username ${{ secrets.SVN_USERNAME }} \
+            --password ${{ secrets.SVN_PASSWORD }}
+

@@ -2,7 +2,7 @@
 Contributors: veeraj
 Tags: best-selling-products, woocommerce, product-grid, gutenberg, blocks, gutenberg-block
 Requires at least: 5.2
-Tested up to: 6.7.1
+Tested up to: 6.8
 Stable tag: 1.0.1
 Requires PHP: 7.2
 License: GPLv2 or later
