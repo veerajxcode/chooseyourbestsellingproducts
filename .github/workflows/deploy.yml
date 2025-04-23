@@ -18,15 +18,14 @@ jobs:
       SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
 
     steps:
-      - name: Download plugin ZIP artifact from parent job
+      - name: Download plugin ZIP artifact
         uses: actions/download-artifact@v4
         with:
           name: cbsp-prepare-zip
           path: ./zip
 
       - name: Extract plugin ZIP
-        run: |
-          unzip ./zip/choose-your-best-selling-products.zip -d extracted
+        run: unzip ./zip/choose-your-best-selling-products.zip -d extracted
 
       - name: Get plugin version
         id: plugin_version
@@ -37,20 +36,19 @@ jobs:
       - name: Install Subversion
         run: sudo apt-get update && sudo apt-get install -y subversion
 
-      - name: Checkout SVN repository
+      - name: Checkout SVN repo
         run: |
           svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive ${{ env.SVN_URL }} svn
 
       - name: Backup current trunk
         run: cp -r svn/trunk svn/_trunk_backup
 
-      - name: Clean existing trunk contents (preserve .svn)
+      - name: Clear trunk (preserve .svn)
         run: |
           find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
 
-      - name: Sync extracted files to trunk
-        run: |
-          rsync -av ./extracted/ svn/trunk/
+      - name: Copy plugin files to trunk
+        run: rsync -av ./extracted/ svn/trunk/
 
       - name: Tag version if not exists
         run: |
@@ -73,5 +71,5 @@ jobs:
             exit 1
           }
 
-      - name: ✅ Done
-        run: echo "🎉 Successfully deployed version ${{ steps.plugin_version.outputs.version }}!"
+      - name: ✅ Deployment complete
+        run: echo "🎉 Plugin version ${{ steps.plugin_version.outputs.version }} deployed successfully!"

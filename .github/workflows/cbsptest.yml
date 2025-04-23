@@ -84,19 +84,19 @@ jobs:
         with:
           php-version: '8.2'
 
-      - name: Cache Composer packages
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.composer/cache
-            vendor
-          key: composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: composer-
-
-      - name: Trim vendor folder to only keep composer and autoload.php
+      - name: Install PHP dependencies (Composer)
         run: |
-          find vendor -mindepth 1 -maxdepth 1 ! -name 'composer' ! -name 'autoload.php' -exec rm -rf {} +
+          sudo apt-get update && sudo apt-get install -y unzip
+          composer install --no-dev --optimize-autoloader
 
+      - name: Trim vendor to only include composer and autoload
+        run: |
+          mkdir -p vendor-temp/composer
+          cp -r vendor/composer vendor-temp/
+          cp vendor/autoload.php vendor-temp/
+          rm -rf vendor
+          mv vendor-temp vendor
+          
       - name: Install WordPress & WooCommerce
         run: |
           curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -159,8 +159,8 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "[Test Alert] Plugin Test Failed or Warned on WP ${{ env.WP_VERSION }}"
-          to: your@email.com
-          from: CBSP Plugin Bot <your@email.com>
+          to: veeraj11yadav@gmail.com
+          from: CBSP Plugin Bot <no-reply@email.com>
           body: |
             Hello 👋
 
@@ -188,7 +188,7 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "[✅ SUCCESS] CBSP Plugin Test Passed on WP ${{ env.WP_VERSION }}"
           to: veeraj11yadav@gmail.com
-          from: CBSP Plugin Bot <your@email.com>
+          from: CBSP Plugin Bot <no-reply@email.com>
           body: |
             Hello 👋
 
