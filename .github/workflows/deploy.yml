@@ -1,4 +1,4 @@
-name: Deploy CBSP Plugin
+name: Deploy CBSP Plugin in WordPress SVN
 
 on:
   workflow_dispatch:
