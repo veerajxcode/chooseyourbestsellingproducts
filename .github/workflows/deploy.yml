@@ -1,16 +1,13 @@
-name: Deploy CBSP Plugin in WordPress SVN
+name: Deploy CBSP Plugin to WordPress.org SVN
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  deploy:
+  deploy-to-svn:
+    name: Deploy Plugin to SVN
     runs-on: ubuntu-latest
-    env:
-      PLUGIN_SLUG: choose-your-best-selling-products
-      ZIP_FILE: choose-your-best-selling-products.zip
-      DISTIGNORE: .distignore
 
     steps:
       - name: Checkout code
@@ -24,103 +21,70 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Create plugin zip from root using .distignore
+      - name: Create production zip from .distignore
         run: |
-          zip -r ${{ env.ZIP_FILE }} . -x@${{ env.DISTIGNORE }}
+          zip -r cbsp.zip . -x@.distignore
 
-      - name: Extract plugin zip
+      - name: Extract zip contents
         run: |
-          unzip -q ${{ env.ZIP_FILE }} -d extracted
+          unzip cbsp.zip -d plugin-files
 
-      - name: Normalize and compare extracted files
+      - name: Validate extracted plugin files
         id: validate
         run: |
-          # Normalize extracted file list (remove extracted/ prefix)
-          cd extracted
-          find . -type f | sort > ../extracted_files.txt
-          cd ..
+          echo "🧪 Validating extracted plugin structure..."
+          
+          cd plugin-files
 
-          # Create expected folder using distignore
-          mkdir expected
-          rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
-          cd expected
-          find . -type f | sort > ../expected_files.txt
-          cd ..
+          ALLOWED=("choose-your-best-selling-products.php" "assets" "includes" "vendor" "readme.txt")
+          UNEXPECTED=()
 
-          # Compare extracted vs expected
-          echo "Comparing extracted vs expected files..."
-          diff expected_files.txt extracted_files.txt > diff.txt || true
+          for item in *; do
+            skip=false
+            for allowed in "${ALLOWED[@]}"; do
+              if [[ "$item" == "$allowed" ]]; then
+                skip=true
+                break
+              fi
+            done
 
-          if [ -s diff.txt ]; then
-            echo "unexpected_files=true" >> $GITHUB_OUTPUT
-            echo "DIFF_OUTPUT<<EOF" >> $GITHUB_OUTPUT
-            cat diff.txt >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-            echo "❌ Unexpected files detected:"
-            cat diff.txt
+            if [[ "$skip" == false ]]; then
+              UNEXPECTED+=("$item")
+            fi
+          done
+
+          if [ ${#UNEXPECTED[@]} -ne 0 ]; then
+            echo "❌ Unexpected files/folders found:"
+            for item in "${UNEXPECTED[@]}"; do
+              echo " - $item"
+            done
+            echo "⛔️ Aborting deploy. Please fix the .distignore or cleanup your build."
+            exit 1
           else
-            echo "unexpected_files=false" >> $GITHUB_OUTPUT
-            echo "✅ No unexpected files."
+            echo "✅ Plugin zip contents are valid."
           fi
 
-      - name: Send Email - Unexpected Files Found
-        if: steps.validate.outputs.unexpected_files == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[❌ Deployment Alert] Unexpected Files Detected in Plugin Package"
-          to: veeraj11yadav@gmail.com
-          from: CBSP Plugin Bot <no-reply@email.com>
-          body: |
-            Hello 👋
-
-            The deployment was aborted due to **unexpected files** in your plugin zip.
-
-            📦 Files not expected based on .distignore:
-            -------------------------------------------
-            ${{ steps.validate.outputs.DIFF_OUTPUT }}
-
-            Please review or update your `.distignore` file if these files are intentional.
-
-            – CBSP Bot
-
-      - name: Exit on Unexpected Files
-        if: steps.validate.outputs.unexpected_files == 'true'
-        run: exit 1
-
-      - name: SVN Checkout
+      - name: Checkout SVN repository
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         run: |
-          svn checkout https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/ svn_repo
+          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
 
-      - name: Copy Files to SVN Trunk
+      - name: Replace trunk contents
         run: |
-          rsync -av extracted/ svn_repo/trunk/
+          rm -rf svn-checkout/trunk/*
+          cp -r plugin-files/* svn-checkout/trunk/
 
-      - name: SVN Commit
+      - name: Set SVN ignore for unversioned files
         run: |
-          cd svn_repo
-          svn add --force trunk/*
-          svn commit -m "Deploying new version of ${{ env.PLUGIN_SLUG }} plugin"
+          cd svn-checkout/trunk
+          svn status | grep '^?' | awk '{print $2}' | xargs -I{} svn add "{}"
 
-      - name: Send Email - Deployment Successful
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          username: ${{ secrets.MAIL_USERNAME }}
-          password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[✅ Deployment Success] Plugin Deployed to WordPress.org SVN"
-          to: veeraj11yadav@gmail.com
-          from: CBSP Plugin Bot <no-reply@email.com>
-          body: |
-            Hello 👋
-
-            ✅ The `choose-your-best-selling-products` plugin has been **successfully deployed** to WordPress.org SVN.
-
-            No unexpected files were found during the verification step.
-            SVN trunk has been updated with your latest production-ready plugin files.
-
-            – CBSP Bot
+      - name: Commit to SVN trunk
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          cd svn-checkout
+          svn commit -m "Deploy plugin via GitHub Actions - Automated push from latest CI run" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
