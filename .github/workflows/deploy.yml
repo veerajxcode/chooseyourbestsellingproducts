@@ -37,19 +37,15 @@ jobs:
       - name: Compare extracted files with .distignore
         id: validate
         run: |
-          # Normalize extracted files
-          cd extracted
-          find . -type f | sed 's|^\./|./|' | sort > ../extracted_files.txt
-          cd ..
+          # Normalize extracted file list
+          find extracted -type f | sed 's|^extracted/|./|' | sort > extracted_files.txt
 
-          # Simulate expected file structure
+          # Normalize expected file list
           mkdir expected
           rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
-          cd expected
-          find . -type f | sed 's|^\./|./|' | sort > ../expected_files.txt
-          cd ..
+          find expected -type f | sed 's|^expected/|./|' | sort > expected_files.txt
 
-          # Compare the lists
+          # Diff
           echo "Comparing extracted vs expected files..."
           diff expected_files.txt extracted_files.txt > diff.txt || true
 
