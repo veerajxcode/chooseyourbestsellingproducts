@@ -38,19 +38,24 @@ jobs:
         id: validate
         run: |
           cd extracted
-          # List all files in the extracted directory
           find . -type f | sort > ../extracted_files.txt
           cd ..
-          # List all files in the current directory excluding those in .distignore
-          rsync -av --exclude-from=${{ env.DISTIGNORE }} ./ temp_dir
-          cd temp_dir
+          mkdir expected
+          rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
+          cd expected
           find . -type f | sort > ../expected_files.txt
           cd ..
-          # Compare the two file lists to find unexpected files
+
+          # Compare the two lists
+          echo "Comparing extracted vs expected files..."
           diff extracted_files.txt expected_files.txt > diff.txt || true
+
           if [ -s diff.txt ]; then
             echo "unexpected_files=true" >> $GITHUB_OUTPUT
-            echo "Unexpected files found:"
+            echo "DIFF_OUTPUT<<EOF" >> $GITHUB_OUTPUT
+            cat diff.txt >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "Unexpected files detected:"
             cat diff.txt
           else
             echo "unexpected_files=false" >> $GITHUB_OUTPUT
@@ -68,13 +73,15 @@ jobs:
           to: veeraj11yadav@gmail.com
           from: CBSP Plugin Bot <no-reply@email.com>
           body: |
-            Hello,
+            Hello 👋
 
-            The deployment process for the `choose-your-best-selling-products` plugin has been halted due to the detection of unexpected files in the plugin package.
+            The deployment was aborted due to **unexpected files** being found in the plugin package.
 
-            Please review the differences below:
+            📦 Files not expected based on .distignore:
+            -------------------------------------------
+            ${{ steps.validate.outputs.DIFF_OUTPUT }}
 
-            $(cat diff.txt)
+            Please review your plugin directory or update your .distignore if these files are valid.
 
             Regards,
             CBSP Plugin Bot
