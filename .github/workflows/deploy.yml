@@ -1,7 +1,18 @@
+name: Deploy CBSP Plugin to WordPress.org SVN
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
 jobs:
-  deploy-to-svn:
-    name: Deploy Plugin to SVN
+  deploy:
     runs-on: ubuntu-latest
+
+    env:
+      PLUGIN_SLUG: choose-your-best-selling-products
+      SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
+      SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
 
     steps:
       - name: Checkout code
@@ -15,13 +26,19 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
+      - name: Get plugin version from main file
+        id: plugin_version
+        run: |
+          version=$(grep -i "Version:" ${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
       - name: Create production zip from .distignore
         run: zip -r cbsp.zip . -x@.distignore
 
       - name: Extract zip contents
         run: unzip cbsp.zip -d plugin-files
 
-      - name: Validate extracted plugin files
+      - name: Validate plugin files
         id: validate
         run: |
           echo "🧪 Validating extracted plugin structure..."
@@ -33,20 +50,80 @@ jobs:
               UNEXPECTED+=("$item")
             fi
           done
+
           if [ ${#UNEXPECTED[@]} -ne 0 ]; then
-            echo "Unexpected files detected:"
-            printf '%s\n' "${UNEXPECTED[@]}"
+            echo "UNEXPECTED_FILES<<EOF" >> $GITHUB_OUTPUT
+            printf '%s\n' "${UNEXPECTED[@]}" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            echo "unexpected_files=true" >> $GITHUB_OUTPUT
             exit 1
+          else
+            echo "unexpected_files=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Install Subversion (SVN)
+      - name: Install SVN
         run: sudo apt-get update && sudo apt-get install -y subversion
 
-      - name: Checkout SVN repository
-        env:
-          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+      - name: Checkout SVN repo
         run: |
-          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout \
-            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
-            --non-interactive --trust-server-cert
+          svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert "$SVN_URL" svn
+
+      - name: Replace trunk contents
+        run: |
+          rm -rf svn/trunk/*
+          cp -r plugin-files/* svn/trunk/
+
+      - name: Add all files to SVN
+        run: |
+          cd svn
+          svn add --force trunk/* --auto-props --parents --depth infinity -q
+
+      - name: Commit to SVN
+        run: |
+          cd svn
+          svn commit -m "Deploy plugin version ${{ steps.plugin_version.outputs.version }}" \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
+
+      - name: Send Email - Deployment Success
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[✅ SUCCESS] CBSP Plugin Deployed to WordPress.org SVN"
+          to: veeraj11yadav@gmail.com
+          from: CBSP Plugin Bot <no-reply@email.com>
+          body: |
+            Hello 👋
+
+            The plugin **${{ env.PLUGIN_SLUG }}** was successfully deployed to WordPress.org SVN repository.
+
+            🚀 Version: ${{ steps.plugin_version.outputs.version }}
+            📁 Trunk has been updated with validated plugin files.
+
+            – CBSP Deploy Bot
+
+      - name: Send Email - Unexpected Files Found
+        if: failure() && steps.validate.outputs.unexpected_files == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[❌ FAILURE] Unexpected Files in Plugin Build"
+          to: veeraj11yadav@gmail.com
+          from: CBSP Plugin Bot <no-reply@email.com>
+          body: |
+            Hello 👋
+
+            The deployment for plugin **${{ env.PLUGIN_SLUG }}** failed due to **unexpected files** in the build.
+
+            ⚠️ Files not matching expected structure:
+            ----------------------------------------
+            ${{ steps.validate.outputs.UNEXPECTED_FILES }}
+
+            Please review your .distignore or plugin structure.
+
+            – CBSP Deploy Bot
