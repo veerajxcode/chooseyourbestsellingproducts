@@ -36,7 +36,7 @@ jobs:
           
           cd plugin-files
 
-          ALLOWED=("choose-your-best-selling-products.php" "assets" "includes" "vendor" "readme.txt")
+          ALLOWED=("choose-your-best-selling-products.php" "assets" "includes" "vendor" "README.txt")
           UNEXPECTED=()
 
           for item in *; do
