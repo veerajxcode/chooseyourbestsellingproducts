@@ -31,21 +31,23 @@ jobs:
       - name: Extract plugin zip
         run: |
           unzip -q ${{ env.ZIP_FILE }} -d extracted
-          echo "Extracted files:"
-          find extracted -type f
 
-      - name: Compare extracted files with .distignore
+      - name: Normalize and compare extracted files
         id: validate
         run: |
-          # Normalize extracted file list
-          find extracted -type f | sed 's|^extracted/|./|' | sort > extracted_files.txt
+          # Normalize extracted file list (remove extracted/ prefix)
+          cd extracted
+          find . -type f | sort > ../extracted_files.txt
+          cd ..
 
-          # Normalize expected file list
+          # Create expected folder using distignore
           mkdir expected
           rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
-          find expected -type f | sed 's|^expected/|./|' | sort > expected_files.txt
+          cd expected
+          find . -type f | sort > ../expected_files.txt
+          cd ..
 
-          # Diff
+          # Compare extracted vs expected
           echo "Comparing extracted vs expected files..."
           diff expected_files.txt extracted_files.txt > diff.txt || true
 
@@ -54,10 +56,11 @@ jobs:
             echo "DIFF_OUTPUT<<EOF" >> $GITHUB_OUTPUT
             cat diff.txt >> $GITHUB_OUTPUT
             echo "EOF" >> $GITHUB_OUTPUT
-            echo "Unexpected files detected:"
+            echo "❌ Unexpected files detected:"
             cat diff.txt
           else
             echo "unexpected_files=false" >> $GITHUB_OUTPUT
+            echo "✅ No unexpected files."
           fi
 
       - name: Send Email - Unexpected Files Found
@@ -74,15 +77,15 @@ jobs:
           body: |
             Hello 👋
 
-            ❌ The deployment was aborted due to **unexpected files** found in the plugin package.
+            The deployment was aborted due to **unexpected files** in your plugin zip.
 
-            📦 Unexpected Files:
-            ----------------------------------
+            📦 Files not expected based on .distignore:
+            -------------------------------------------
             ${{ steps.validate.outputs.DIFF_OUTPUT }}
 
-            ✅ Please review and update your `.distignore` if needed.
+            Please review or update your `.distignore` file if these files are intentional.
 
-            – CBSP Deploy Bot
+            – CBSP Bot
 
       - name: Exit on Unexpected Files
         if: steps.validate.outputs.unexpected_files == 'true'
@@ -99,8 +102,8 @@ jobs:
       - name: SVN Commit
         run: |
           cd svn_repo
-          svn add --force trunk/* --auto-props --parents --depth infinity -q
-          svn commit -m "✅ Deploying latest version of ${{ env.PLUGIN_SLUG }} plugin"
+          svn add --force trunk/*
+          svn commit -m "Deploying new version of ${{ env.PLUGIN_SLUG }} plugin"
 
       - name: Send Email - Deployment Successful
         uses: dawidd6/action-send-mail@v3
@@ -109,17 +112,15 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[✅ SUCCESS] CBSP Plugin Deployed to WordPress.org SVN"
+          subject: "[✅ Deployment Success] Plugin Deployed to WordPress.org SVN"
           to: veeraj11yadav@gmail.com
           from: CBSP Plugin Bot <no-reply@email.com>
           body: |
             Hello 👋
 
-            ✅ The `choose-your-best-selling-products` plugin has been successfully deployed to the WordPress.org SVN repository.
+            ✅ The `choose-your-best-selling-products` plugin has been **successfully deployed** to WordPress.org SVN.
 
-            - Plugin zip passed integrity check
-            - SVN trunk updated
-            - Deployment complete
+            No unexpected files were found during the verification step.
+            SVN trunk has been updated with your latest production-ready plugin files.
 
-            Cheers,  
-            CBSP Deploy Bot
+            – CBSP Bot
