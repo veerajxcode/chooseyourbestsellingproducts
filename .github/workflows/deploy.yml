@@ -81,10 +81,13 @@ jobs:
           cd svn-checkout/trunk
           svn status | grep '^?' | awk '{print $2}' | xargs -I{} svn add "{}"
 
-      - name: Commit to SVN trunk
+      - name: Install Subversion (SVN)
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
+      - name: Checkout SVN repository
         env:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         run: |
-          cd svn-checkout
-          svn commit -m "Deploy plugin via GitHub Actions - Automated push from latest CI run" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
+          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
+
