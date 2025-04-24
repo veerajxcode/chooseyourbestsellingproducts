@@ -37,16 +37,14 @@ jobs:
       - name: Compare extracted files with .distignore
         id: validate
         run: |
-          cd extracted
-          find . -type f | sort > ../extracted_files.txt
-          cd ..
+          # List extracted files (normalize path)
+          find extracted -type f | sed 's|^extracted/|./|' | sort > extracted_files.txt
+
+          # Create expected dir and list files (excluding .distignore)
           mkdir expected
           rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
-          cd expected
-          find . -type f | sort > ../expected_files.txt
-          cd ..
+          find expected -type f | sed 's|^expected/|./|' | sort > expected_files.txt
 
-          # Compare the two lists
           echo "Comparing extracted vs expected files..."
           diff extracted_files.txt expected_files.txt > diff.txt || true
 
@@ -77,14 +75,13 @@ jobs:
 
             The deployment was aborted due to **unexpected files** being found in the plugin package.
 
-            📦 Files not expected based on .distignore:
+            📦 Files not expected based on `.distignore`:
             -------------------------------------------
             ${{ steps.validate.outputs.DIFF_OUTPUT }}
 
-            Please review your plugin directory or update your .distignore if these files are valid.
+            Please review your plugin directory or update your `.distignore` if these files are valid.
 
-            Regards,
-            CBSP Plugin Bot
+            – CBSP Bot
 
       - name: Exit on Unexpected Files
         if: steps.validate.outputs.unexpected_files == 'true'
@@ -119,5 +116,4 @@ jobs:
 
             The `choose-your-best-selling-products` plugin has been successfully deployed to the WordPress.org SVN repository.
 
-            Regards,
-            CBSP Plugin Bot
+            – CBSP Bot
