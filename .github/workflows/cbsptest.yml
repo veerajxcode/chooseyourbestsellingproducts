@@ -12,9 +12,17 @@ jobs:
     outputs:
       should_run_tests: ${{ steps.check.outputs.should_run }}
       wp_version: ${{ steps.check.outputs.wp_version }}
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Restore WP version cache
+        id: cache-wp
+        uses: actions/cache@v3
+        with:
+          path: .wp-version-cache
+          key: wp-version-cache
 
       - name: Get latest WordPress version
         id: check
@@ -22,32 +30,28 @@ jobs:
           latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
           echo "Latest WordPress version: $latest"
 
-          if [ -f .last-wp-version ]; then
-            last=$(cat .last-wp-version)
-          else
-            last=""
+          mkdir -p .wp-version-cache
+          last=""
+
+          if [ -f .wp-version-cache/last-wp-version.txt ]; then
+            last=$(cat .wp-version-cache/last-wp-version.txt)
           fi
 
           if [ "$latest" != "$last" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "$latest" > .last-wp-version
+            echo "$latest" > .wp-version-cache/last-wp-version.txt
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
           echo "wp_version=$latest" >> $GITHUB_OUTPUT
 
-      - name: Commit updated WP version
+      - name: Save updated version to cache
         if: steps.check.outputs.should_run == 'true'
-        env:
-          GIT_AUTH_TOKEN: ${{ secrets.DEPLOY_PAT }}
-        run: |
-          git config user.name "veerjxcode"
-          git config user.email "veeraj11yadav@gmail.com"
-          git add .last-wp-version
-          git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
-          git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}
-          git push origin HEAD:${{ github.ref_name }}
+        uses: actions/cache/save@v3
+        with:
+          path: .wp-version-cache
+          key: wp-version-cache
 
   test:
     needs: check-wp-version
@@ -212,5 +216,5 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: "deploy.yml",
-              ref: "bug-fixes" // or "master" if needed
+              ref: "bug-fixes"
             });
