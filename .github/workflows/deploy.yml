@@ -1,13 +1,16 @@
-name: Deploy CBSP Plugin (Dry Run)
+name: Deploy CBSP Plugin
 
 on:
   workflow_dispatch:
   workflow_call:
 
 jobs:
-  build-deploy-package:
-    name: Build Plugin Package
+  deploy:
     runs-on: ubuntu-latest
+    env:
+      PLUGIN_SLUG: choose-your-best-selling-products
+      ZIP_FILE: choose-your-best-selling-products.zip
+      DISTIGNORE: .distignore
 
     steps:
       - name: Checkout code
@@ -21,28 +24,93 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --no-dev --optimize-autoloader
 
-      - name: Skip JS build (already built locally)
-        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
-
       - name: Create plugin zip from root using .distignore
         run: |
-          zip -r choose-your-best-selling-products.zip . -x@.distignore
+          zip -r ${{ env.ZIP_FILE }} . -x@${{ env.DISTIGNORE }}
 
-      - name: Create GitHub Draft Release with Plugin Zip
-        uses: ncipollo/release-action@v1
+      - name: Extract plugin zip
+        run: |
+          unzip -q ${{ env.ZIP_FILE }} -d extracted
+          echo "Extracted files:"
+          find extracted -type f
+
+      - name: Compare extracted files with .distignore
+        id: validate
+        run: |
+          cd extracted
+          # List all files in the extracted directory
+          find . -type f | sort > ../extracted_files.txt
+          cd ..
+          # List all files in the current directory excluding those in .distignore
+          rsync -av --exclude-from=${{ env.DISTIGNORE }} ./ temp_dir
+          cd temp_dir
+          find . -type f | sort > ../expected_files.txt
+          cd ..
+          # Compare the two file lists to find unexpected files
+          diff extracted_files.txt expected_files.txt > diff.txt || true
+          if [ -s diff.txt ]; then
+            echo "unexpected_files=true" >> $GITHUB_OUTPUT
+            echo "Unexpected files found:"
+            cat diff.txt
+          else
+            echo "unexpected_files=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Email - Unexpected Files Found
+        if: steps.validate.outputs.unexpected_files == 'true'
+        uses: dawidd6/action-send-mail@v3
         with:
-          tag: dry-run-${{ github.run_number }}
-          name: "CBSP Plugin Dry Run - Run #${{ github.run_number }}"
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[❌ Deployment Alert] Unexpected Files Detected in Plugin Package"
+          to: veeraj11yadav@gmail.com
+          from: CBSP Plugin Bot <no-reply@email.com>
           body: |
-            🧪 This is an automated **dry run** deploy of the `choose-your-best-selling-products` plugin.
+            Hello,
 
-            ✅ WordPress tested version: ${{ env.WP_VERSION || 'latest' }}
-            ✅ Plugin build passed all checks
+            The deployment process for the `choose-your-best-selling-products` plugin has been halted due to the detection of unexpected files in the plugin package.
 
-            📦 This release contains the plugin package as built by GitHub Actions.
-            📥 Download the plugin zip from the "Assets" section below.
+            Please review the differences below:
 
-            🚫 Not yet deployed to SVN.
-          draft: true
-          artifacts: choose-your-best-selling-products.zip
-          token: ${{ secrets.DEPLOY_PAT }}
+            $(cat diff.txt)
+
+            Regards,
+            CBSP Plugin Bot
+
+      - name: Exit on Unexpected Files
+        if: steps.validate.outputs.unexpected_files == 'true'
+        run: exit 1
+
+      - name: SVN Checkout
+        run: |
+          svn checkout https://plugins.svn.wordpress.org/${{ env.PLUGIN_SLUG }}/ svn_repo
+
+      - name: Copy Files to SVN Trunk
+        run: |
+          rsync -av extracted/ svn_repo/trunk/
+
+      - name: SVN Commit
+        run: |
+          cd svn_repo
+          svn add --force trunk/*
+          svn commit -m "Deploying new version of ${{ env.PLUGIN_SLUG }} plugin"
+
+      - name: Send Email - Deployment Successful
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          subject: "[✅ Deployment Success] Plugin Deployed to WordPress.org SVN"
+          to: veeraj11yadav@gmail.com
+          from: CBSP Plugin Bot <no-reply@email.com>
+          body: |
+            Hello,
+
+            The `choose-your-best-selling-products` plugin has been successfully deployed to the WordPress.org SVN repository.
+
+            Regards,
+            CBSP Plugin Bot
