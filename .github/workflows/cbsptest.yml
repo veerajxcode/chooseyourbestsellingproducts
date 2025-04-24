@@ -40,17 +40,14 @@ jobs:
       - name: Commit updated WP version
         if: steps.check.outputs.should_run == 'true'
         env:
-          PAT_TOKEN: ${{ secrets.DEPLOY_PAT }}
+          GIT_AUTH_TOKEN: ${{ secrets.DEPLOY_PAT }}
         run: |
           git config user.name "veerjxcode"
           git config user.email "veeraj11yadav@gmail.com"
-
-          git remote set-url origin https://x-access-token:${PAT_TOKEN}@github.com/${{ github.repository }}
-          
           git add .last-wp-version
           git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
+          git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:${{ github.ref_name }}
-        continue-on-error: true
 
   test:
     needs: check-wp-version
