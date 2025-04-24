@@ -37,16 +37,21 @@ jobs:
       - name: Compare extracted files with .distignore
         id: validate
         run: |
-          # List extracted files (normalize path)
-          find extracted -type f | sed 's|^extracted/|./|' | sort > extracted_files.txt
+          # Normalize extracted files
+          cd extracted
+          find . -type f | sed 's|^\./|./|' | sort > ../extracted_files.txt
+          cd ..
 
-          # Create expected dir and list files (excluding .distignore)
+          # Simulate expected file structure
           mkdir expected
           rsync -a --exclude-from=${{ env.DISTIGNORE }} ./ expected/
-          find expected -type f | sed 's|^expected/|./|' | sort > expected_files.txt
+          cd expected
+          find . -type f | sed 's|^\./|./|' | sort > ../expected_files.txt
+          cd ..
 
+          # Compare the lists
           echo "Comparing extracted vs expected files..."
-          diff extracted_files.txt expected_files.txt > diff.txt || true
+          diff expected_files.txt extracted_files.txt > diff.txt || true
 
           if [ -s diff.txt ]; then
             echo "unexpected_files=true" >> $GITHUB_OUTPUT
@@ -73,15 +78,15 @@ jobs:
           body: |
             Hello 👋
 
-            The deployment was aborted due to **unexpected files** being found in the plugin package.
+            ❌ The deployment was aborted due to **unexpected files** found in the plugin package.
 
-            📦 Files not expected based on `.distignore`:
-            -------------------------------------------
+            📦 Unexpected Files:
+            ----------------------------------
             ${{ steps.validate.outputs.DIFF_OUTPUT }}
 
-            Please review your plugin directory or update your `.distignore` if these files are valid.
+            ✅ Please review and update your `.distignore` if needed.
 
-            – CBSP Bot
+            – CBSP Deploy Bot
 
       - name: Exit on Unexpected Files
         if: steps.validate.outputs.unexpected_files == 'true'
@@ -98,8 +103,8 @@ jobs:
       - name: SVN Commit
         run: |
           cd svn_repo
-          svn add --force trunk/*
-          svn commit -m "Deploying new version of ${{ env.PLUGIN_SLUG }} plugin"
+          svn add --force trunk/* --auto-props --parents --depth infinity -q
+          svn commit -m "✅ Deploying latest version of ${{ env.PLUGIN_SLUG }} plugin"
 
       - name: Send Email - Deployment Successful
         uses: dawidd6/action-send-mail@v3
@@ -108,12 +113,17 @@ jobs:
           server_port: 587
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
-          subject: "[✅ Deployment Success] Plugin Deployed to WordPress.org SVN"
+          subject: "[✅ SUCCESS] CBSP Plugin Deployed to WordPress.org SVN"
           to: veeraj11yadav@gmail.com
           from: CBSP Plugin Bot <no-reply@email.com>
           body: |
-            Hello,
+            Hello 👋
 
-            The `choose-your-best-selling-products` plugin has been successfully deployed to the WordPress.org SVN repository.
+            ✅ The `choose-your-best-selling-products` plugin has been successfully deployed to the WordPress.org SVN repository.
 
-            – CBSP Bot
+            - Plugin zip passed integrity check
+            - SVN trunk updated
+            - Deployment complete
+
+            Cheers,  
+            CBSP Deploy Bot
