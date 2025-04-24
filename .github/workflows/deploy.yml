@@ -1,9 +1,3 @@
-name: Deploy CBSP Plugin to WordPress.org SVN
-
-on:
-  workflow_dispatch:
-  workflow_call:
-
 jobs:
   deploy-to-svn:
     name: Deploy Plugin to SVN
@@ -22,64 +16,28 @@ jobs:
         run: composer install --no-dev --optimize-autoloader
 
       - name: Create production zip from .distignore
-        run: |
-          zip -r cbsp.zip . -x@.distignore
+        run: zip -r cbsp.zip . -x@.distignore
 
       - name: Extract zip contents
-        run: |
-          unzip cbsp.zip -d plugin-files
+        run: unzip cbsp.zip -d plugin-files
 
       - name: Validate extracted plugin files
         id: validate
         run: |
           echo "🧪 Validating extracted plugin structure..."
-          
           cd plugin-files
-
           ALLOWED=("choose-your-best-selling-products.php" "assets" "includes" "vendor" "README.txt")
           UNEXPECTED=()
-
           for item in *; do
-            skip=false
-            for allowed in "${ALLOWED[@]}"; do
-              if [[ "$item" == "$allowed" ]]; then
-                skip=true
-                break
-              fi
-            done
-
-            if [[ "$skip" == false ]]; then
+            if [[ ! " ${ALLOWED[*]} " =~ " $item " ]]; then
               UNEXPECTED+=("$item")
             fi
           done
-
           if [ ${#UNEXPECTED[@]} -ne 0 ]; then
-            echo "❌ Unexpected files/folders found:"
-            for item in "${UNEXPECTED[@]}"; do
-              echo " - $item"
-            done
-            echo "⛔️ Aborting deploy. Please fix the .distignore or cleanup your build."
+            echo "Unexpected files detected:"
+            printf '%s\n' "${UNEXPECTED[@]}"
             exit 1
-          else
-            echo "✅ Plugin zip contents are valid."
           fi
-
-      - name: Checkout SVN repository
-        env:
-          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-        run: |
-          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
-
-      - name: Replace trunk contents
-        run: |
-          rm -rf svn-checkout/trunk/*
-          cp -r plugin-files/* svn-checkout/trunk/
-
-      - name: Set SVN ignore for unversioned files
-        run: |
-          cd svn-checkout/trunk
-          svn status | grep '^?' | awk '{print $2}' | xargs -I{} svn add "{}"
 
       - name: Install Subversion (SVN)
         run: sudo apt-get update && sudo apt-get install -y subversion
@@ -89,5 +47,6 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
         run: |
-          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive --trust-server-cert
-
+          svn co https://plugins.svn.wordpress.org/choose-your-best-selling-products svn-checkout \
+            --username "$SVN_USERNAME" --password "$SVN_PASSWORD" \
+            --non-interactive --trust-server-cert
