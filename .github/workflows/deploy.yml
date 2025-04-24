@@ -1,75 +1,48 @@
-name: Deploy CBSP Plugin to WordPress SVN
+name: Deploy CBSP Plugin (Dry Run)
 
 on:
+  workflow_dispatch:
   workflow_call:
-    inputs:
-      wp_version:
-        required: true
-        type: string
 
 jobs:
-  deploy:
+  build-deploy-package:
+    name: Build Plugin Package
     runs-on: ubuntu-latest
 
-    env:
-      PLUGIN_SLUG: choose-your-best-selling-products
-      SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
-      SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
-      SVN_URL: https://plugins.svn.wordpress.org/choose-your-best-selling-products/
-
     steps:
-      - name: Download plugin ZIP artifact
-        uses: actions/download-artifact@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          name: cbsp-prepare-zip
-          path: ./zip
+          php-version: '8.2'
 
-      - name: Extract plugin ZIP
-        run: unzip ./zip/choose-your-best-selling-products.zip -d extracted
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader
 
-      - name: Get plugin version
-        id: plugin_version
+      - name: Skip JS build (already built locally)
+        run: echo "Skipping npm build step. Using pre-built assets in assets/build/"
+
+      - name: Create plugin zip from root using .distignore
         run: |
-          version=$(grep -i "Version:" extracted/${{ env.PLUGIN_SLUG }}.php | cut -d ':' -f2 | xargs)
-          echo "version=$version" >> $GITHUB_OUTPUT
+          zip -r choose-your-best-selling-products.zip . -x@.distignore
 
-      - name: Install Subversion
-        run: sudo apt-get update && sudo apt-get install -y subversion
+      - name: Create GitHub Draft Release with Plugin Zip
+        uses: ncipollo/release-action@v1
+        with:
+          tag: dry-run-${{ github.run_number }}
+          name: "CBSP Plugin Dry Run - Run #${{ github.run_number }}"
+          body: |
+            🧪 This is an automated **dry run** deploy of the `choose-your-best-selling-products` plugin.
 
-      - name: Checkout SVN repo
-        run: |
-          svn checkout --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive ${{ env.SVN_URL }} svn
+            ✅ WordPress tested version: ${{ env.WP_VERSION || 'latest' }}
+            ✅ Plugin build passed all checks
 
-      - name: Backup current trunk
-        run: cp -r svn/trunk svn/_trunk_backup
+            📦 This release contains the plugin package as built by GitHub Actions.
+            📥 Download the plugin zip from the "Assets" section below.
 
-      - name: Clear trunk (preserve .svn)
-        run: |
-          find svn/trunk -mindepth 1 -not -name '.svn' -exec rm -rf {} +
-
-      - name: Copy plugin files to trunk
-        run: rsync -av ./extracted/ svn/trunk/
-
-      - name: Tag version if not exists
-        run: |
-          if ! svn ls ${{ env.SVN_URL }}tags/${{ steps.plugin_version.outputs.version }} > /dev/null 2>&1; then
-            svn cp svn/trunk svn/tags/${{ steps.plugin_version.outputs.version }}
-          else
-            echo "✅ Tag already exists. Skipping..."
-          fi
-
-      - name: Commit to SVN
-        run: |
-          cd svn
-          svn add --force . --auto-props --parents --depth infinity -q
-          svn status
-          svn commit -m "Deploy version ${{ steps.plugin_version.outputs.version }} (tested on WP ${{ inputs.wp_version }})" --username "$SVN_USERNAME" --password "$SVN_PASSWORD" --non-interactive || {
-            echo "❌ Commit failed. Rolling back..."
-            svn revert -R .
-            rm -rf trunk
-            mv _trunk_backup trunk
-            exit 1
-          }
-
-      - name: ✅ Deployment complete
-        run: echo "🎉 Plugin version ${{ steps.plugin_version.outputs.version }} deployed successfully!"
+            🚫 Not yet deployed to SVN.
+          draft: true
+          artifacts: choose-your-best-selling-products.zip
+          token: ${{ secrets.DEPLOY_PAT }}

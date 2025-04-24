@@ -16,44 +16,36 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Download .last-wp-version artifact (if exists)
-        uses: actions/download-artifact@v4
-        with:
-          name: last-wp-version
-          path: ./version-cache
-        continue-on-error: true
-
-      - name: Get latest WordPress version & compare
+      - name: Get latest WordPress version
         id: check
         run: |
-          mkdir -p ./version-cache
           latest=$(curl -s https://api.wordpress.org/core/version-check/1.7/ | jq -r '.offers[0].version')
           echo "Latest WordPress version: $latest"
 
-          if [ -f ./version-cache/.last-wp-version ]; then
-            last=$(cat ./version-cache/.last-wp-version | tr -d '\n\r')
+          if [ -f .last-wp-version ]; then
+            last=$(cat .last-wp-version)
           else
             last=""
           fi
 
-          echo "Last tested version: $last"
-
-          echo "$latest" > ./version-cache/.last-wp-version
-
-          if [ -z "$last" ] || [ "$latest" != "$last" ]; then
+          if [ "$latest" != "$last" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
+            echo "$latest" > .last-wp-version
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
           fi
 
           echo "wp_version=$latest" >> $GITHUB_OUTPUT
 
-
-      - name: Upload updated .last-wp-version
-        uses: actions/upload-artifact@v4
-        with:
-          name: last-wp-version
-          path: ./version-cache/.last-wp-version
+      - name: Commit updated WP version
+        if: steps.check.outputs.should_run == 'true'
+        run: |
+          git config user.name "veerjxcode"
+          git config user.email "veeraj11yadav@gmail.com"
+          git add .last-wp-version
+          git commit -m "Update last tested WP version to ${{ steps.check.outputs.wp_version }}"
+          git push
+        continue-on-error: true
 
   test:
     needs: check-wp-version
@@ -84,19 +76,21 @@ jobs:
         with:
           php-version: '8.2'
 
-      - name: Install PHP dependencies (Composer)
-        run: |
-          sudo apt-get update && sudo apt-get install -y unzip
-          composer install --no-dev --optimize-autoloader
+      - name: Cache Composer packages
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.composer/cache
+            vendor
+          key: composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: composer-
 
-      - name: Trim vendor to only include composer and autoload
+      - name: Install dependencies
         run: |
-          mkdir -p vendor-temp/composer
-          cp -r vendor/composer vendor-temp/
-          cp vendor/autoload.php vendor-temp/
-          rm -rf vendor
-          mv vendor-temp vendor
-          
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          composer install --no-interaction --prefer-dist --optimize-autoloader
+
       - name: Install WordPress & WooCommerce
         run: |
           curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar
@@ -206,19 +200,15 @@ jobs:
 
             Have a great day!
 
-      - name: Create clean plugin zip from root (using .distignore)
-        run: |
-          zip -r choose-your-best-selling-products.zip . -x@.distignore
-
-      - name: Upload zipped plugin
-        uses: actions/upload-artifact@v4
+      - name: Trigger deploy workflow (dry run)
+        if: steps.test.outputs.has_error != 'true' && steps.test.outputs.has_warning != 'true'
+        uses: actions/github-script@v6
         with:
-          name: cbsp-prepare-zip
-          path: choose-your-best-selling-products.zip
-
-  deploy:
-    needs: test
-    if: needs.test.outputs.has_error != 'true' && needs.test.outputs.has_warning != 'true'
-    uses: ./.github/workflows/deploy.yml
-    with:
-      wp_version: ${{ needs.check-wp-version.outputs.wp_version }}    
+          github-token: ${{ secrets.DEPLOY_PAT }}
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: "deploy.yml",
+              ref: "bug-fixes" // or "master" if needed
+            });
